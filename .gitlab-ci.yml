@@ -15,5 +15,5 @@ deploy:prd:
   environment: Production
   script:
     - gcloud config set project bbqb-prd --quiet
-    - ./mvnw -DskipTests package appengine:deploy --quiet --version $CI_COMMIT_SHORT_SHA
+    - ./mvnw -DskipTests package appengine:deploy -Dapp.deploy.version=$CI_COMMIT_SHORT_SHA
 

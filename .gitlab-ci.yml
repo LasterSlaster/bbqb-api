@@ -1,0 +1,19 @@
+stages:
+  - deploy
+
+.google_cloud_auth: &google_cloud_auth
+  image: google/cloud-sdk
+  before_script:
+    - echo ${SERVICE_ACCOUNT} > /tmp/$CI_PIPELINE_ID.json
+    - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+
+deploy:prd:
+  <<: *google_cloud_auth
+  only:
+    - master
+  stage: deploy
+  environment: Production
+  script:
+    - gcloud config set project bbqb-prd --quiet
+    - ./mvnw -DskipTests package appengine:deploy --quiet
+

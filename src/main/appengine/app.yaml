@@ -1,2 +1,3 @@
 runtime: java11
+max_instances: 2
 service: api

@@ -10,4 +10,9 @@ public class ApiController {
   public String test() {
     return "App up and running";
   }
+
+  @GetMapping("/hello")
+  public String hello() {
+    return "Hello World";
+  }
 }

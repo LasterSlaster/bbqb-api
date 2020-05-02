@@ -21,10 +21,10 @@ before_script:
 build:
   stage: build
   image: java:8
-  script: ./mvnw $MAVEN_CLI_OPTS package
+  script: ./mvnw $MAVEN_CLI_OPTS package appengine:stage
   artifacts:
     paths:
-      - ./
+      - target/appengine-staging
 
 .google_cloud_auth: &google_cloud_auth
   image: google/cloud-sdk

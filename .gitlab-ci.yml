@@ -24,7 +24,7 @@ build:
   script: ./mvnw $MAVEN_CLI_OPTS package
   artifacts:
     paths:
-      - target
+      - ./
 
 .google_cloud_auth: &google_cloud_auth
   image: google/cloud-sdk
@@ -34,11 +34,10 @@ build:
 
 deploy:prd:
   <<: *google_cloud_auth
-  #only:
-  #  - master
+  only:
+    - master
   stage: deploy
   environment: Production
   script:
     - gcloud config set project bbqb-prd --quiet
     - gcloud app deploy --version $CI_COMMIT_SHORT_SHA
-    #- ./mvnw -DskipTests appengine:deploy -Dapp.deploy.version=$CI_COMMIT_SHORT_SHA

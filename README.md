@@ -7,3 +7,4 @@
 
 ### Developer
 - Marius Degen
+- Dimitri Kreik

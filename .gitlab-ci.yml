@@ -34,8 +34,8 @@ build:
 
 deploy:prd:
   <<: *google_cloud_auth
-  only:
-    - master
+  #only:
+  #  - master
   stage: deploy
   environment: Production
   script:

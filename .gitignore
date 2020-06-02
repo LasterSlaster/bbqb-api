@@ -2,7 +2,7 @@ HELP.md
 target/
 .idea/
 bin/
-src/main/resources/bbqb-prd-99d80e3729ad.json
+src/main/resources/bbqb-prd-*.json
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/test/**
 

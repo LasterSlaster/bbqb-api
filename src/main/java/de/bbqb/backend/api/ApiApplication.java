@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.gcp.data.firestore.repository.config.EnableReactiveFirestoreRepositories;
 import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
 import org.springframework.cloud.gcp.pubsub.integration.AckMode;
 import org.springframework.cloud.gcp.pubsub.integration.inbound.PubSubInboundChannelAdapter;
@@ -17,6 +18,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
 @SpringBootApplication
+@EnableReactiveFirestoreRepositories("de.bbqb.backend.gcp.firestore")
 public class ApiApplication {
 	
 	private static final Log LOGGER = LogFactory.getLog(ApiApplication.class);

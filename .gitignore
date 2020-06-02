@@ -2,8 +2,8 @@ HELP.md
 target/
 .idea/
 bin/
+src/main/resources/bbqb-prd-99d80e3729ad.json
 !.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**
 !**/src/test/**
 
 ### STS ###

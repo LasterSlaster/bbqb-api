@@ -13,7 +13,7 @@ public class DeviceDoc {
 	private String number;
 	private String publishTime;
 	private String status;
-	private String location;
+	private String location; //TODO: Change location address type
 	private String address;
 
 	public String getId() {

@@ -32,7 +32,7 @@ public class ApiApplication {
 	
 	private DeviceRepo deviceRepo;
 
-	@Value("${bbqb.gcp.pubsub.name}")
+	@Value("${bbqb.backend.gcp.pubsub.name}")
 	private String pubSubName;
 
 

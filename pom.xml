@@ -67,7 +67,11 @@
 	        <groupId>org.springframework.integration</groupId>
 	        <artifactId>spring-integration-core</artifactId>
 	    </dependency>
-
+		<dependency>
+			<groupId>com.google.apis</groupId>
+			<artifactId>google-api-services-cloudiot</artifactId>
+			<version>v1-rev20200519-1.30.9</version>
+		</dependency>
 		<!-- GCP Dependencies -->
 <!-- 	<dependency>
 		    <groupId>org.springframework.cloud</groupId>

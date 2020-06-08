@@ -24,9 +24,6 @@ public class ApiController {
 	@Autowired
 	private FirestoreDeviceService deviceService;
 
-	@Autowired
-	private PubsubOutboundGateway messagingGateway; // TODO: Move this to deviceService or something
-
 
 	// Test endpoint only for development purposes
 	@GetMapping("/hello")
@@ -62,7 +59,7 @@ public class ApiController {
 	 */
 	@PostMapping("/message") 
 	public ResponseEntity<DeviceDoc> postMessage(@RequestBody DeviceDoc deviceDoc) {
-		messagingGateway.sendToPubsub("message"); // TODO: Update message payload
+		deviceService.sendMessage("message"); // TODO: Update message payload
 
 		DeviceDoc savedDevice = null; // TODO: updat this part
 		if (savedDevice == null) {

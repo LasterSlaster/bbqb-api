@@ -2,8 +2,10 @@ package de.bbqb.backend.api.service;
 
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import de.bbqb.backend.api.ApiApplication.PubsubOutboundGateway;
 import de.bbqb.backend.api.model.entity.Device;
 import de.bbqb.backend.gcp.firestore.DeviceRepo;
 import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
@@ -12,6 +14,9 @@ import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
 public class FirestoreDeviceService implements DeviceService{
 
 	private DeviceRepo deviceRepo; // TODO: Think about making this static
+
+	@Autowired
+	private PubsubOutboundGateway messagingGateway; // TODO: Move this to deviceService or something
 
 	
 	@Override
@@ -30,6 +35,11 @@ public class FirestoreDeviceService implements DeviceService{
 	}
 	
 	
+	public void sendMessage(String message) {
+		messagingGateway.sendToPubsub(message); // TODO: Update message payload
+	}
+
+	
 	@Override
 	public Device readDevice(String deviceId) {
 
@@ -42,7 +52,7 @@ public class FirestoreDeviceService implements DeviceService{
 		// TODO: Map to Device type and return Device stream
 		return deviceRepo.findAll().toStream();
 	}
-
+	
 	
 	private DeviceDoc mapToDeviceDoc(Device device) {
 		// TODO: Implement

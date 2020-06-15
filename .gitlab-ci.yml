@@ -23,7 +23,7 @@ build:
   stage: build
   image: java:8
   before_script:
-    - echo ${SERVICE_ACCOUNT} > /tmp/$KEY_FILE_NAME.json
+    - echo ${SERVICE_ACCOUNT} > /src/main/resources/$KEY_FILE_NAME.json
   script: ./mvnw $MAVEN_CLI_OPTS package appengine:stage
   artifacts:
     paths:

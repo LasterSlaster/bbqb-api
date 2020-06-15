@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,17 +14,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import de.bbqb.backend.api.ApiApplication.PubsubOutboundGateway;
 import de.bbqb.backend.api.model.entity.Device;
-import de.bbqb.backend.api.service.FirestoreDeviceService;
-import de.bbqb.backend.gcp.firestore.document.DeviceDoc; // TODO: Eliminate this dependency to database type
+import de.bbqb.backend.api.model.service.DeviceService;
 
+@CrossOrigin(origins = "*")
 @RestController
 public class ApiController {
 	
-	@Autowired
-	private FirestoreDeviceService deviceService;
+	private DeviceService deviceService;
 
+	public ApiController(DeviceService deviceService) {
+		super();
+		this.deviceService = deviceService;
+	}
 
 	// Test endpoint only for development purposes
 	@GetMapping("/hello")
@@ -58,26 +61,15 @@ public class ApiController {
 	 * @return
 	 */
 	@PostMapping("/message") 
-	public ResponseEntity<DeviceDoc> postMessage(@RequestBody DeviceDoc deviceDoc) {
-		deviceService.sendMessage("message"); // TODO: Update message payload
-
-		DeviceDoc savedDevice = null; // TODO: updat this part
-		if (savedDevice == null) {
-	        return ResponseEntity.notFound().build();
-	    } else {
-	        URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
-	          .path("/{id}")
-	          .buildAndExpand(savedDevice.getId())
-	          .toUri();
+	public ResponseEntity<Device> postMessage(@RequestBody Device device) {
+		deviceService.openDevice(device);
 	 
-	        return ResponseEntity.created(uri)
-	          .body(savedDevice);
-	    }
+	    return ResponseEntity.accepted().build();
 	}
 	 
 
 	@PostMapping("/devices")
-	public ResponseEntity<Device> postDevices(@RequestBody Device device) { //TODO: Change DeviceDoc to Device type 
+	public ResponseEntity<Device> postDevices(@RequestBody Device device) { 
 
 		Device savedDevice = deviceService.createDevice(device);
 		
@@ -97,7 +89,7 @@ public class ApiController {
 
 
 	@GetMapping("/devices")
-	public Stream<DeviceDoc> getDevices() {
+	public Stream<Device> getDevices() {
 
 		return deviceService.readAllDevices();
 	}

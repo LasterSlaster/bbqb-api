@@ -23,7 +23,8 @@ build:
   stage: build
   image: java:8
   before_script:
-    - echo ${SERVICE_ACCOUNT} > /src/main/resources/$KEY_FILE_NAME.json
+    - ls -l
+    - echo ${SERVICE_ACCOUNT} > bbqb-api/src/main/resources/$KEY_FILE_NAME.json
   script: ./mvnw $MAVEN_CLI_OPTS package appengine:stage
   artifacts:
     paths:

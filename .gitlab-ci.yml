@@ -19,6 +19,7 @@ before_script:
   - chmod +x mvnw
 
 build:
+  <<: *google_cloud_auth
   stage: build
   image: java:8
   script: ./mvnw $MAVEN_CLI_OPTS package appengine:stage
@@ -29,8 +30,8 @@ build:
 .google_cloud_auth: &google_cloud_auth
   image: google/cloud-sdk
   before_script:
-    - echo ${SERVICE_ACCOUNT} > /tmp/$CI_PIPELINE_ID.json
-    - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+    - echo ${SERVICE_ACCOUNT} > /tmp/bbqb-prd-99d80e3729ad.json
+    - gcloud auth activate-service-account --key-file /tmp/bbqb-prd-99d80e3729ad.json
 
 deploy:prd:
   <<: *google_cloud_auth

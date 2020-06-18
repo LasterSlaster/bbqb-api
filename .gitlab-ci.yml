@@ -9,6 +9,7 @@ variables:
   KEY_FILE_NAME: "bbqb-prd-99d80e3729ad"
 
 stages:
+  - test
   - build
   - deploy
 
@@ -18,14 +19,16 @@ cache:
 
 before_script:
   - chmod +x mvnw
+  
+test: # run separate test stage to not package keyfile
+  stage: test
+  image: java:8
+  script: ./mvnw $MAVEN_CLI_OPTS test
 
 build:
   stage: build
   image: java:8
-  before_script:
-    - ls  ./src/main/resources
-    - echo ${SERVICE_ACCOUNT} > ./src/main/resources/$KEY_FILE_NAME.json
-  script: ./mvnw $MAVEN_CLI_OPTS package appengine:stage
+  script: ./mvnw $MAVEN_CLI_OPTS package appengine:stage -DskipTests
   artifacts:
     paths:
       - target/appengine-staging
@@ -33,7 +36,7 @@ build:
 .google_cloud_auth: &google_cloud_auth
   image: google/cloud-sdk
   before_script:
-    - echo ${SERVICE_ACCOUNT} > /tmp/$KEY_FILE_NAME.json
+    - echo ${GOOGLE_APPLICATION_CREDENTIALS} > /tmp/$KEY_FILE_NAME.json
     - gcloud auth activate-service-account --key-file /tmp/$KEY_FILE_NAME.json
 
 deploy:prd:

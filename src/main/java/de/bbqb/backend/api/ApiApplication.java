@@ -20,6 +20,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
+import de.bbqb.backend.gcp.firestore.DeviceMessageHandler;
 import de.bbqb.backend.gcp.firestore.DeviceRepo;
 import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
 
@@ -33,11 +34,6 @@ import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
 public class ApiApplication {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ApiApplication.class);
-	
-	/**
-	 * An Interface to write and read device information from/to gcp nosql firestore
-	 */
-	private DeviceRepo deviceRepo;
 
 	/**
 	 * Name of the gcp pub/sub topic where bbqb devices send messages to
@@ -89,28 +85,7 @@ public class ApiApplication {
 	@Bean
 	@ServiceActivator(inputChannel = "pubsubInputChannel")
 	public MessageHandler messageReceiver() {
-		// TODO: Move this code to a separate file at a different abstraction level because it handles details like DB access
-		return message -> {
-			LOGGER.info("Message arrived! Payload: " + new String((byte[]) message.getPayload()));
-			//TODO: Write message to a time series database
-			// Retrieve attributes and message body from message
-			String deviceId = message.getHeaders().get("deviceId", String.class); //TODO: Move message attribute key to properties file
-			String deviceStatus = message.getPayload().toString();
-			Long deviceTimestamp = message.getHeaders().getTimestamp();
-
-			// Update device object
-			DeviceDoc deviceDoc = deviceRepo.findById(deviceId).block();
-			deviceDoc.setPublishTime(String.valueOf(deviceTimestamp));
-			deviceDoc.setStatus(deviceStatus);
-
-			// Update device document in database
-			deviceRepo.save(deviceDoc);
-			
-			// Acknowledge the message
-			BasicAcknowledgeablePubsubMessage originalMessage =
-			  message.getHeaders().get(GcpPubSubHeaders.ORIGINAL_MESSAGE, BasicAcknowledgeablePubsubMessage.class);
-			originalMessage.ack();
-		};
+		return new DeviceMessageHandler();
 	}
 
 }

@@ -13,6 +13,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 //@Configuration
 public class SpringContextConfig {
 
+// Currenty CORS is configured with an annotation on the controller class
 //	@Bean
 //	public WebMvcConfigurer corsConfigurer() {
 //		return new WebMvcConfigurer() {

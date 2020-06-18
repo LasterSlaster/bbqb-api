@@ -29,7 +29,7 @@ public class ApiController {
 	}
 
 	// Test endpoint only for development purposes
-	@GetMapping("/hello")
+	@GetMapping("/")
 	public String hello() {
 		return "Hello World";
 	}

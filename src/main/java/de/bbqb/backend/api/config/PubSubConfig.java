@@ -14,7 +14,7 @@ import org.springframework.messaging.MessageHandler;
 
 import de.bbqb.backend.gcp.firestore.DeviceMessageHandler;
 
-@Configuration
+//@Configuration
 public class PubSubConfig {
 
 	/**
@@ -58,7 +58,7 @@ public class PubSubConfig {
 	 */
 	@Bean
 	@ServiceActivator(inputChannel = "pubsubInputChannel")
-	public MessageHandler messageReceiver() {
-		return new DeviceMessageHandler();
+	public MessageHandler messageReceiver(DeviceMessageHandler messageHandler) {
+		return messageHandler; 
 	}
 }

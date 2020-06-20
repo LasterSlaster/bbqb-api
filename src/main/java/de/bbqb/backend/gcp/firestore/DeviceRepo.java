@@ -1,6 +1,8 @@
 package de.bbqb.backend.gcp.firestore;
 
 import org.springframework.cloud.gcp.data.firestore.FirestoreReactiveRepository;
+import org.springframework.stereotype.Repository;
+
 import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
 import reactor.core.publisher.Flux;
 
@@ -11,10 +13,6 @@ import reactor.core.publisher.Flux;
  * @author laster
  *
  */
+@Repository
 public interface DeviceRepo extends FirestoreReactiveRepository<DeviceDoc> {
-	
-	Flux<DeviceDoc> findAll();
-
-	Flux<DeviceDoc> findById();
-	
 }

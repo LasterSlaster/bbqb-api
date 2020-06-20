@@ -26,6 +26,8 @@ import de.bbqb.backend.api.model.entity.Location;
 import de.bbqb.backend.api.model.service.DeviceService;
 import de.bbqb.backend.gcp.firestore.DeviceRepo;
 import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 // TODO: Implement business layer and separate business logic from external systems like REST and DB(firestore,pubsub,iot)
 /**
@@ -36,9 +38,9 @@ import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
 @Service
 public class FirestoreDeviceService implements DeviceService {
 
-	private static final Logger logger = LoggerFactory.getLogger(FirestoreDeviceService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(FirestoreDeviceService.class);
 	 
-	private DeviceRepo deviceRepo; // TODO: Think about making this static
+	private final DeviceRepo deviceRepo; // TODO: Think about making this static
 
 	@Value("${spring.cloud.gcp.project-id}")
 	private String gcpProjectId;
@@ -54,17 +56,24 @@ public class FirestoreDeviceService implements DeviceService {
 
 	@Value("${bbq.backend.gcp.iot.message.open-device}")
 	private String openDeviceMessage;
+	
 
-	@Override
-	public Device createDevice(Device device) {
-		DeviceDoc deviceDoc = mapToDeviceDoc(device);
-
-		return mapFromDeviceDoc(deviceRepo.save(deviceDoc).block());
+	public FirestoreDeviceService(DeviceRepo deviceRepo) {
+		this.deviceRepo = deviceRepo;
 	}
 
 	@Override
-	public Device updateDevice(Device device) {
-		return mapFromDeviceDoc(deviceRepo.save(mapToDeviceDoc(device)).block());
+	public Mono<Device> createDevice(Device device) {
+		return deviceRepo.save(mapToDeviceDoc(device)).map((DeviceDoc deviceDoc)-> {
+			return mapFromDeviceDoc(deviceDoc);
+		});
+	}
+
+	@Override
+	public Mono<Device> updateDevice(Device device) {
+		return deviceRepo.save(mapToDeviceDoc(device)).map((DeviceDoc deviceDoc) -> {
+			return mapFromDeviceDoc(deviceDoc);
+		});
 	}
 
 	@Override
@@ -107,14 +116,16 @@ public class FirestoreDeviceService implements DeviceService {
 	
 	
 	@Override
-	public Device readDevice(String deviceId) {
-		return mapFromDeviceDoc(deviceRepo.findById(deviceId).block());
+	public Mono<Device> readDevice(String deviceId) {
+		return deviceRepo.findById(deviceId).map((DeviceDoc deviceDoc) ->  {
+			return mapFromDeviceDoc(deviceDoc);
+		});
 	}
 	
 
-	// TODO: Add to interface and override
-	public Stream<Device> readAllDevices() {
-		return deviceRepo.findAll().toStream().map((DeviceDoc deviceDoc) -> {
+	@Override
+	public Flux<Device> readAllDevices() { // TODO: Return Mono instead of stream
+		return deviceRepo.findAll().map((DeviceDoc deviceDoc) -> {
 				return mapFromDeviceDoc(deviceDoc);
 			}
 		);
@@ -156,7 +167,7 @@ public class FirestoreDeviceService implements DeviceService {
 		Device device = new Device(
 				deviceDoc.getId(), 
 				Integer.valueOf(deviceDoc.getNumber()), 
-				new Date(deviceDoc.getPublishTime()), // TODO: Test this part to make sure that parsing time works correctly
+				new Date(Long.parseLong(deviceDoc.getPublishTime())), // TODO: Test this part to make sure that parsing time works correctly
 				deviceDoc.getStatus(),
 				location,
 				address);

@@ -5,6 +5,7 @@ import org.springframework.cloud.gcp.data.firestore.Document;
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.firestore.annotation.PropertyName;
 
+// TODO: Rework data types: Use Timestamp on firestore for publishtime(Date?), use DOuble for lat/lngt, status?, are number and id correct?
 @Document(collectionName="devicesCollection")
 public class DeviceDoc {
 
@@ -21,6 +22,8 @@ public class DeviceDoc {
 	private String city;
 	private String postalCode;
 	private String country;
+	
+	public DeviceDoc() { }
 	
 	public DeviceDoc(String id, String number, String publishTime, String status, String longitude, String latitude, String addressName, String street, String houseNumber, String city, String postalCode, String country) {
 		super();

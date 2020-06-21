@@ -23,42 +23,45 @@ public class PubSubConfig {
 	@Value("${bbq.backend.gcp.pubsub.incoming-topic}")
 	private String pubSubIncomingTopic;
 
-
 	/**
-	 * Part of pub/sub subscription processing
-	 * Provides a channel to which a ChannelAdapter sends received messages 
+	 * Part of pub/sub subscription processing Provides a channel to which a
+	 * ChannelAdapter sends received messages
+	 * 
 	 * @return A DirectChannel with default RoundRobinLoadBalancingStrategy
 	 */
 	@Bean
 	public MessageChannel pubsubInputChannel() {
-	  return new DirectChannel();
+		return new DirectChannel();
 	}
 
-
 	/**
-	 * Part of pub/sub subscription processing
-	 * Provides an Adapter which listens to a GCP Pub/Sub subscription to fetch incoming messages
-	 * @param inputChannel to send received messages to
+	 * Part of pub/sub subscription processing Provides an Adapter which listens to
+	 * a GCP Pub/Sub subscription to fetch incoming messages
+	 * 
+	 * @param inputChannel   to send received messages to
 	 * @param pubSubTemplate Spring Template to communicate with gcp pub/sub
-	 * @return A ChannelAdapter that provides messages from the topic pubSubIncomingTopic that have to be acknowledged manually
+	 * @return A ChannelAdapter that provides messages from the topic
+	 *         pubSubIncomingTopic that have to be acknowledged manually
 	 */
 	@Bean
-	public PubSubInboundChannelAdapter messageChannelAdapter(@Qualifier("pubsubInputChannel") MessageChannel inputChannel,
-	  PubSubTemplate pubSubTemplate) {
-		PubSubInboundChannelAdapter adapter = new PubSubInboundChannelAdapter(pubSubTemplate, pubSubIncomingTopic); 
+	public PubSubInboundChannelAdapter messageChannelAdapter(
+			@Qualifier("pubsubInputChannel") MessageChannel inputChannel, PubSubTemplate pubSubTemplate) {
+		PubSubInboundChannelAdapter adapter = new PubSubInboundChannelAdapter(pubSubTemplate, pubSubIncomingTopic);
 		adapter.setOutputChannel(inputChannel);
 		adapter.setAckMode(AckMode.MANUAL);
-		
+
 		return adapter;
 	}
 
 	/**
 	 * Part of pub/sub subscription processing
-	 * @return A MessageHandler which processes incoming messages from an InputChannel and update device information with message content 
+	 * 
+	 * @return A MessageHandler which processes incoming messages from an
+	 *         InputChannel and update device information with message content
 	 */
 	@Bean
 	@ServiceActivator(inputChannel = "pubsubInputChannel")
 	public MessageHandler messageReceiver(DeviceMessageHandler messageHandler) {
-		return messageHandler; 
+		return messageHandler;
 	}
 }

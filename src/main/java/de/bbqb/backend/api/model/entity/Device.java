@@ -4,6 +4,7 @@ import java.util.Date;
 
 /**
  * BBQ-Butler business object to hold device information
+ * 
  * @author laster
  */
 public class Device {
@@ -11,11 +12,12 @@ public class Device {
 	private String id;
 	private Integer number;
 	private Date publishTime;
-	private String status; //TODO: Change to Enum?
+	private String status; // TODO: Change to Enum?
 	private Location location;
 	private Address address;
-	
-	public Device() {} //TODO: Remove. Currently in place because of development/testing purposes
+
+	public Device() {
+	} // TODO: Remove. Currently in place because of development/testing purposes
 
 	public Device(String id, Integer number, Date publishTime, String status, Location location, Address address) {
 		super();
@@ -30,18 +32,23 @@ public class Device {
 	public String getId() {
 		return id;
 	}
+
 	public Integer getNumber() {
 		return number;
 	}
+
 	public Date getPublishTime() {
 		return publishTime;
 	}
+
 	public String getStatus() {
 		return status;
 	}
+
 	public Location getLocation() {
 		return location;
 	}
+
 	public Address getAddress() {
 		return address;
 	}

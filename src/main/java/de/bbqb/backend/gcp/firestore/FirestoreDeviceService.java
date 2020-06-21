@@ -32,6 +32,7 @@ import reactor.core.publisher.Mono;
 // TODO: Implement business layer and separate business logic from external systems like REST and DB(firestore,pubsub,iot)
 /**
  * Device service to retrieve device information from a gcp firestore nosql db
+ * 
  * @author laster
  *
  */
@@ -39,8 +40,8 @@ import reactor.core.publisher.Mono;
 public class FirestoreDeviceService implements DeviceService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FirestoreDeviceService.class);
-	 
-	private final DeviceRepo deviceRepo; // TODO: Think about making this static
+
+	private final DeviceRepo deviceRepo;
 
 	@Value("${spring.cloud.gcp.project-id}")
 	private String gcpProjectId;
@@ -56,15 +57,45 @@ public class FirestoreDeviceService implements DeviceService {
 
 	@Value("${bbq.backend.gcp.iot.message.open-device}")
 	private String openDeviceMessage;
-	
 
 	public FirestoreDeviceService(DeviceRepo deviceRepo) {
 		this.deviceRepo = deviceRepo;
 	}
 
 	@Override
+	public void openDevice(Device device) {
+		// TODO: Use deviceId from parameter device
+		try {
+			final String devicePath = String.format("projects/%s/locations/%s/registries/%s/devices/%s", gcpProjectId,
+					cloudRegion, registryName, deviceId);
+
+			GoogleCredentials credential = GoogleCredentials.getApplicationDefault().createScoped(CloudIotScopes.all());
+			JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+			HttpRequestInitializer init = new HttpCredentialsAdapter(credential);
+			final CloudIot service = new CloudIot.Builder(GoogleNetHttpTransport.newTrustedTransport(), jsonFactory,
+					init).setApplicationName(gcpProjectId).build();
+
+			SendCommandToDeviceRequest req = new SendCommandToDeviceRequest();
+			Base64.Encoder encoder = Base64.getEncoder();
+			String encPayload = encoder.encodeToString(this.openDeviceMessage.getBytes(StandardCharsets.UTF_8.name()));
+			req.setBinaryData(encPayload);
+			System.out.printf("Sending command to %s%n", devicePath);
+
+			service.projects().locations().registries().devices().sendCommandToDevice(devicePath, req).execute();
+			System.out.println("Command response: sent");
+		} catch (Exception e) {
+			System.out.println(e.getMessage() + e.getStackTrace());
+		}
+	}
+
+	@Override
+	public void lockDevice(Device device) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
 	public Mono<Device> createDevice(Device device) {
-		return deviceRepo.save(mapToDeviceDoc(device)).map((DeviceDoc deviceDoc)-> {
+		return deviceRepo.save(mapToDeviceDoc(device)).map((DeviceDoc deviceDoc) -> {
 			return mapFromDeviceDoc(deviceDoc);
 		});
 	}
@@ -77,100 +108,41 @@ public class FirestoreDeviceService implements DeviceService {
 	}
 
 	@Override
-	public void openDevice(Device device) {
-		try {
-			final String devicePath = String.format(
-					"projects/%s/locations/%s/registries/%s/devices/%s", gcpProjectId, cloudRegion, registryName, deviceId);
-
-			GoogleCredentials credential = GoogleCredentials.getApplicationDefault().createScoped(CloudIotScopes.all());
-			JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-			HttpRequestInitializer init = new HttpCredentialsAdapter(credential);
-			final CloudIot service =
-				new CloudIot.Builder(GoogleNetHttpTransport.newTrustedTransport(), jsonFactory, init)
-					.setApplicationName(gcpProjectId)
-					.build();
-
-			SendCommandToDeviceRequest req = new SendCommandToDeviceRequest();
-			Base64.Encoder encoder = Base64.getEncoder();
-			String encPayload = encoder.encodeToString(this.openDeviceMessage.getBytes(StandardCharsets.UTF_8.name()));
-			req.setBinaryData(encPayload);
-			System.out.printf("Sending command to %s%n", devicePath);
-
-			service
-				.projects()
-				.locations()
-				.registries()
-				.devices()
-				.sendCommandToDevice(devicePath, req)
-				.execute();
-			System.out.println("Command response: sent");
-		} catch (Exception e) {
-			System.out.println(e.getMessage() + e.getStackTrace());
-		}
-	}
-
-	@Override
-	public void lockDevice(Device device) {
-		// TODO Auto-generated method stub
-	}
-	
-	
-	@Override
 	public Mono<Device> readDevice(String deviceId) {
-		return deviceRepo.findById(deviceId).map((DeviceDoc deviceDoc) ->  {
+		return deviceRepo.findById(deviceId).map((DeviceDoc deviceDoc) -> {
 			return mapFromDeviceDoc(deviceDoc);
 		});
 	}
-	
 
 	@Override
-	public Flux<Device> readAllDevices() { // TODO: Return Mono instead of stream
+	public Flux<Device> readAllDevices() {
 		return deviceRepo.findAll().map((DeviceDoc deviceDoc) -> {
-				return mapFromDeviceDoc(deviceDoc);
-			}
-		);
+			return mapFromDeviceDoc(deviceDoc);
+		});
 	}
-	
-	
+
 	private DeviceDoc mapToDeviceDoc(Device device) {
 		Address address = device.getAddress();
 		Location location = device.getLocation();
 
-		DeviceDoc deviceDoc = new DeviceDoc(
-				device.getId(), 
-				device.getNumber().toString(), 
-				device.getPublishTime().toString(), // TODO: Inject and use DateFormatter
-				device.getStatus(), 
-				location.getLongitude().toString(),
-				location.getLatitude().toString(),
-				address.getName(), 
-				address.getStreet(),
-				address.getHouseNumber(),
-				address.getCity(),
-				address.getPostalcode(),
+		DeviceDoc deviceDoc = new DeviceDoc(device.getId(), device.getNumber().toString(),
+				String.valueOf(device.getPublishTime().getTime()), device.getStatus(),
+				location.getLongitude().toString(), location.getLatitude().toString(), address.getName(),
+				address.getStreet(), address.getHouseNumber(), address.getCity(), address.getPostalcode(),
 				address.getCountry());
 
 		return deviceDoc;
 	}
-	
-	
+
 	private Device mapFromDeviceDoc(DeviceDoc deviceDoc) {
-		Location location = new Location(
-				Double.valueOf(deviceDoc.getLatitude()), 
+		Location location = new Location(Double.valueOf(deviceDoc.getLatitude()),
 				Double.valueOf(deviceDoc.getLongitude()));
-		Address address = new Address(deviceDoc.getCountry(), 
-				deviceDoc.getPostalCode(), 
-				deviceDoc.getCity(), 
-				deviceDoc.getStreet(), 
-				deviceDoc.getHouseNumber(), 
-				deviceDoc.getAddressName()); 
-		Device device = new Device(
-				deviceDoc.getId(), 
-				Integer.valueOf(deviceDoc.getNumber()), 
-				new Date(Long.parseLong(deviceDoc.getPublishTime())), // TODO: Test this part to make sure that parsing time works correctly
-				deviceDoc.getStatus(),
-				location,
-				address);
+		Address address = new Address(deviceDoc.getCountry(), deviceDoc.getPostalCode(), deviceDoc.getCity(),
+				deviceDoc.getStreet(), deviceDoc.getHouseNumber(), deviceDoc.getAddressName());
+		Device device = new Device(deviceDoc.getId(), Integer.valueOf(deviceDoc.getNumber()),
+				new Date(Long.parseLong(deviceDoc.getPublishTime())), // TODO: Test this part to make sure that parsing
+																		// time works correctly
+				deviceDoc.getStatus(), location, address);
 
 		return device;
 	}

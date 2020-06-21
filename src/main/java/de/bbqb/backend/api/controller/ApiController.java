@@ -17,10 +17,10 @@ import de.bbqb.backend.api.model.service.DeviceService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*") // CORS configuration to allow all for the endpoints in this controller
 @RestController
 public class ApiController {
-	
+
 	private DeviceService deviceService;
 
 	public ApiController(DeviceService deviceService) {
@@ -33,80 +33,69 @@ public class ApiController {
 	public String hello() {
 		return "Hello World";
 	}
-	
 
-	@PutMapping("/devices")
-	public Mono<ResponseEntity<Device>> putDevices(@RequestBody Device device) {
-		return deviceService.updateDevice(device).map((Device updatedDevice) -> {
-			// create Response
-			if (updatedDevice == null) {
-	    	    return ResponseEntity.notFound().build();
-	    	} else {
-	    	    URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
-	    	      .path("/{id}")
-	    	      .buildAndExpand(device.getId())
-	    	      .toUri();
-	 
-	    	    return ResponseEntity.created(uri)
-	    	     .body(updatedDevice);
-	    	}
-		});
-	}
-	
 	/**
 	 * publish a message to a device like open bbqb
+	 * 
 	 * @param deviceDoc
 	 * @return
 	 */
-	@PostMapping("/message") 
+	@PostMapping("/message")
 	public ResponseEntity<Device> postMessage(@RequestBody Device device) {
 		deviceService.openDevice(device);
-	 
-	    return ResponseEntity.accepted().build();
-	}
-	 
 
-	@PostMapping("/devices")
-	public Mono<ResponseEntity<Device>> postDevices(@RequestBody Device device) { 
-		return deviceService.createDevice(device).map((Device savedDevice) -> {
-			// create Response
-			if (savedDevice == null) {
-	    	    return ResponseEntity.notFound().build();
-	    	} else {
-	    	    URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
-	    	      .path("/{id}")
-	    	      .buildAndExpand(savedDevice.getId())
-	    	      .toUri();
-	 
-	    	    return ResponseEntity.created(uri)
-	    	      .body(savedDevice);
-	    	}
-		});
+		return ResponseEntity.accepted().build();
 	}
-
 
 	@GetMapping("/devices")
 	public Flux<Device> getDevices() {
 		return deviceService.readAllDevices();
 	}
-	
 
 	@GetMapping("/devices/{deviceId}")
 	public Mono<ResponseEntity<Device>> getDevice(@PathVariable("deviceId") String deviceId) {
+		ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
+
 		return deviceService.readDevice(deviceId).map((Device device) -> {
 			// create Response
 			if (device == null) {
-	    	    return ResponseEntity.notFound().build();
-	    	} else {
-	    	    URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
-	    	      .path("/{id}")
-	    	      .buildAndExpand(device.getId())
-	    	      .toUri();
-	 
-	    	    return ResponseEntity.created(uri)
-	    	      .body(device);
-	    	}
+				return ResponseEntity.notFound().build();
+			} else {
+				URI uri = builder.path("/{id}").buildAndExpand(device.getId()).toUri();
+				return ResponseEntity.created(uri).body(device);
+			}
 		});
 	}
-	
+
+	@PostMapping("/devices")
+	public Mono<ResponseEntity<Device>> postDevices(@RequestBody Device device) {
+		ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
+
+		return deviceService.createDevice(device).map((Device savedDevice) -> {
+			// create Response
+			if (savedDevice == null) {
+				return ResponseEntity.notFound().build();
+			} else {
+				URI uri = builder.path("/{id}").buildAndExpand(savedDevice.getId()).toUri();
+
+				return ResponseEntity.created(uri).body(savedDevice);
+			}
+		});
+	}
+
+	@PutMapping("/devices")
+	public Mono<ResponseEntity<Device>> putDevices(@RequestBody Device device) {
+		ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
+
+		return deviceService.updateDevice(device).map((Device updatedDevice) -> {
+			// create Response
+			if (updatedDevice == null) {
+				return ResponseEntity.notFound().build();
+			} else {
+				URI uri = builder.path("/{id}").buildAndExpand(device.getId()).toUri();
+
+				return ResponseEntity.created(uri).body(updatedDevice);
+			}
+		});
+	}
 }

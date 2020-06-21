@@ -6,6 +6,7 @@ import org.springframework.cloud.gcp.data.firestore.repository.config.EnableReac
 
 /**
  * Configure and start the application
+ * 
  * @author laster
  *
  */
@@ -15,6 +16,7 @@ public class ApiApplication {
 
 	/**
 	 * Start the application as a Spring application and pass cmd arguments
+	 * 
 	 * @param args Arguments passed to the application on startup
 	 */
 	public static void main(String[] args) {

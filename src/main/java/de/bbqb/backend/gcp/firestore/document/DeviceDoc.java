@@ -6,7 +6,7 @@ import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.firestore.annotation.PropertyName;
 
 // TODO: Rework data types: Use Timestamp on firestore for publishtime(Date?), use DOuble for lat/lngt, status?, are number and id correct?
-@Document(collectionName="devicesCollection")
+@Document(collectionName = "devicesCollection")
 public class DeviceDoc {
 
 	@DocumentId
@@ -14,7 +14,7 @@ public class DeviceDoc {
 	private String number;
 	private String publishTime;
 	private String status;
-	private String longitude; //TODO: Change location address type
+	private String longitude;
 	private String latitude;
 	private String addressName;
 	private String street;
@@ -22,10 +22,12 @@ public class DeviceDoc {
 	private String city;
 	private String postalCode;
 	private String country;
-	
-	public DeviceDoc() { }
-	
-	public DeviceDoc(String id, String number, String publishTime, String status, String longitude, String latitude, String addressName, String street, String houseNumber, String city, String postalCode, String country) {
+
+	public DeviceDoc() {
+	}
+
+	public DeviceDoc(String id, String number, String publishTime, String status, String longitude, String latitude,
+			String addressName, String street, String houseNumber, String city, String postalCode, String country) {
 		super();
 		this.id = id;
 		this.number = number;
@@ -49,12 +51,12 @@ public class DeviceDoc {
 		this.id = id;
 	}
 
-	//@PropertyName("number")
+	// @PropertyName("number")
 	public String getNumber() {
 		return number;
 	}
 
-	//@PropertyName("number")
+	// @PropertyName("number")
 	public void setNumber(String number) {
 		this.number = number;
 	}
@@ -138,5 +140,5 @@ public class DeviceDoc {
 	public void setCountry(String country) {
 		this.country = country;
 	}
-	
+
 }

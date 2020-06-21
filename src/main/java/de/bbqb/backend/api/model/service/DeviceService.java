@@ -7,15 +7,15 @@ import reactor.core.publisher.Mono;
 public interface DeviceService {
 
 	public Mono<Device> createDevice(Device device);
-	
+
 	public Mono<Device> updateDevice(Device device);
-	
+
 	public Mono<Device> readDevice(String deviceId);
-	
+
 	public Flux<Device> readAllDevices();
-	
+
 	public void openDevice(Device device); // TODO: Add return type
-	
+
 	public void lockDevice(Device device);
 
 }

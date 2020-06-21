@@ -1,8 +1,9 @@
 package de.bbqb.backend.api.model.entity;
 
-// TODO: Implement toString method for all entity classes
+// TODO: Implement toString/hashCode/equals method for all entity classes
 /**
  * BBQ-Butler business object to hold address information
+ * 
  * @author laster
  */
 public class Address {
@@ -27,18 +28,23 @@ public class Address {
 	public String getCountry() {
 		return country;
 	}
+
 	public String getPostalcode() {
 		return postalcode;
 	}
+
 	public String getCity() {
 		return city;
 	}
+
 	public String getStreet() {
 		return street;
 	}
+
 	public String getHouseNumber() {
 		return houseNumber;
 	}
+
 	public String getName() {
 		return name;
 	}

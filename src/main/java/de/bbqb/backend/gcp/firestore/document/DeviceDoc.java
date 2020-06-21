@@ -2,20 +2,22 @@ package de.bbqb.backend.gcp.firestore.document;
 
 import org.springframework.cloud.gcp.data.firestore.Document;
 
+import com.google.cloud.Timestamp;
+import com.google.cloud.firestore.GeoPoint;
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.firestore.annotation.PropertyName;
 
-// TODO: Rework data types: Use Timestamp on firestore for publishtime(Date?), use DOuble for lat/lngt, status?, are number and id correct?
+// TODO: Rework data types:  use geopoint for lat/lngt,status -> int or string?, are number and id correct?
 @Document(collectionName = "devicesCollection")
 public class DeviceDoc {
 
 	@DocumentId
 	private String id;
+	private String deviceId;
 	private String number;
-	private String publishTime;
+	private Timestamp publishTime;
 	private String status;
-	private String longitude;
-	private String latitude;
+	private GeoPoint location;
 	private String addressName;
 	private String street;
 	private String houseNumber;
@@ -26,15 +28,16 @@ public class DeviceDoc {
 	public DeviceDoc() {
 	}
 
-	public DeviceDoc(String id, String number, String publishTime, String status, String longitude, String latitude,
+	// TODO: Think about hinding TImestamp and GeoPoint dependencies
+	public DeviceDoc(String id, String deviceId, String number, Timestamp publishTime, String status, GeoPoint location,
 			String addressName, String street, String houseNumber, String city, String postalCode, String country) {
 		super();
 		this.id = id;
+		this.deviceId = deviceId;
 		this.number = number;
 		this.publishTime = publishTime;
 		this.status = status;
-		this.longitude = longitude;
-		this.latitude = latitude;
+		this.location = location;
 		this.addressName = addressName;
 		this.street = street;
 		this.houseNumber = houseNumber;
@@ -50,6 +53,14 @@ public class DeviceDoc {
 	public void setId(String id) {
 		this.id = id;
 	}
+	
+	public String getDeviceId() {
+		return deviceId;
+	}
+	
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
+	}
 
 	// @PropertyName("number")
 	public String getNumber() {
@@ -61,11 +72,11 @@ public class DeviceDoc {
 		this.number = number;
 	}
 
-	public String getPublishTime() {
+	public Timestamp getPublishTime() {
 		return publishTime;
 	}
 
-	public void setPublishTime(String publishTime) {
+	public void setPublishTime(Timestamp publishTime) {
 		this.publishTime = publishTime;
 	}
 
@@ -77,20 +88,12 @@ public class DeviceDoc {
 		this.status = status;
 	}
 
-	public String getLongitude() {
-		return longitude;
+	public GeoPoint getLocation() {
+		return location;
 	}
 
-	public void setLongitude(String longitude) {
-		this.longitude = longitude;
-	}
-
-	public String getLatitude() {
-		return latitude;
-	}
-
-	public void setLatitude(String latitude) {
-		this.latitude = latitude;
+	public void setLocation(GeoPoint location) {
+		this.location = location;
 	}
 
 	public String getAddressName() {

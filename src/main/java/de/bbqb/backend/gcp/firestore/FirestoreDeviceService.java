@@ -15,7 +15,9 @@ import com.google.api.services.cloudiot.v1.CloudIotScopes;
 import com.google.api.services.cloudiot.v1.model.SendCommandToDeviceRequest;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.GeoPoint;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,9 +57,6 @@ public class FirestoreDeviceService implements DeviceService {
 	@Value("${bbq.backend.gcp.registry-name}")
 	private String registryName;
 
-	@Value("${bbq.backend.gcp.device-id}")
-	private String deviceId;
-
 	@Value("${bbq.backend.gcp.iot.message.open-device}")
 	private String openDeviceMessage;
 
@@ -67,10 +66,9 @@ public class FirestoreDeviceService implements DeviceService {
 
 	@Override
 	public void openDevice(Device device) {
-		// TODO: Use deviceId from parameter device
 		try {
 			final String devicePath = String.format("projects/%s/locations/%s/registries/%s/devices/%s", gcpProjectId,
-					cloudRegion, registryName, deviceId);
+					cloudRegion, registryName, device.getId());
 
 			GoogleCredentials credential = GoogleCredentials.getApplicationDefault().createScoped(CloudIotScopes.all());
 			JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
@@ -133,9 +131,9 @@ public class FirestoreDeviceService implements DeviceService {
 		Address address = device.getAddress();
 		Location location = device.getLocation();
 
-		DeviceDoc deviceDoc = new DeviceDoc(device.getId(), device.getNumber().toString(),
-				String.valueOf(device.getPublishTime().getTime()), device.getStatus(),
-				location.getLongitude().toString(), location.getLatitude().toString(), address.getName(),
+		DeviceDoc deviceDoc = new DeviceDoc(device.getId(), device.getDeviceId(), device.getNumber().toString(),
+				Timestamp.ofTimeMicroseconds(device.getPublishTime().getTime()), device.getStatus(), // TODO: Check if we store time in microsec, nano or sec
+				new GeoPoint(location.getLongitude(), location.getLatitude()), address.getName(),
 				address.getStreet(), address.getHouseNumber(), address.getCity(), address.getPostalcode(),
 				address.getCountry());
 
@@ -143,13 +141,12 @@ public class FirestoreDeviceService implements DeviceService {
 	}
 
 	private Device mapFromDeviceDoc(DeviceDoc deviceDoc) {
-		Location location = new Location(Double.valueOf(deviceDoc.getLatitude()),
-				Double.valueOf(deviceDoc.getLongitude()));
+		Location location = new Location(deviceDoc.getLocation().getLatitude(),
+				deviceDoc.getLocation().getLongitude());
 		Address address = new Address(deviceDoc.getCountry(), deviceDoc.getPostalCode(), deviceDoc.getCity(),
 				deviceDoc.getStreet(), deviceDoc.getHouseNumber(), deviceDoc.getAddressName());
-		Device device = new Device(deviceDoc.getId(), Integer.valueOf(deviceDoc.getNumber()),
-				new Date(Long.parseLong(deviceDoc.getPublishTime())), // TODO: Test this part to make sure that parsing
-																		// time works correctly
+		Device device = new Device(deviceDoc.getId(), deviceDoc.getDeviceId(), Integer.valueOf(deviceDoc.getNumber()),
+				new Date(deviceDoc.getPublishTime().getSeconds()), // TODO: Check if we store time in microsec, nano or sec
 				deviceDoc.getStatus(), location, address);
 
 		return device;

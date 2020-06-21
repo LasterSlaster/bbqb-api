@@ -1,5 +1,7 @@
 package de.bbqb.backend.gcp.firestore;
 
+import java.util.Date;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +10,8 @@ import org.springframework.cloud.gcp.pubsub.support.GcpPubSubHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
+
+import com.google.cloud.Timestamp;
 
 import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
 
@@ -55,7 +59,7 @@ public class DeviceMessageHandler implements MessageHandler {
 		}
 		// Update device
 		deviceRepo.findById(deviceId).flatMap(device -> {
-			device.setPublishTime(String.valueOf(deviceTimestamp));
+			device.setPublishTime(Timestamp.ofTimeMicroseconds(deviceTimestamp)); // TODO: Check if we store time in microsec, nano or sec
 			device.setStatus(deviceStatus);
 
 			// Update device document in database

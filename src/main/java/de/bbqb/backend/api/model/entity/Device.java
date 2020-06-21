@@ -10,15 +10,17 @@ import java.util.Date;
 public class Device {
 
 	private String id;
-	private Integer number;
+	private String deviceId;
+	private Integer number; // TODO: Change to String?
 	private Date publishTime;
 	private String status; // TODO: Change to Enum?
 	private Location location;
 	private Address address;
 
-	public Device(String id, Integer number, Date publishTime, String status, Location location, Address address) {
+	public Device(String id, String deviceId, Integer number, Date publishTime, String status, Location location, Address address) {
 		super();
 		this.id = id;
+		this.deviceId = id;
 		this.number = number;
 		this.publishTime = publishTime;
 		this.status = status;
@@ -27,7 +29,7 @@ public class Device {
 	}
 	
 	public Device(String id, Device device) {
-		this(id, device.getNumber(), device.getPublishTime(), device.getStatus(), device.getLocation(), device.getAddress());
+		this(id, device.getDeviceId(), device.getNumber(), device.getPublishTime(), device.getStatus(), device.getLocation(), device.getAddress());
 	}
 
 	public String getId() {
@@ -37,7 +39,11 @@ public class Device {
 	public Integer getNumber() {
 		return number;
 	}
-
+	
+	public String getDeviceId() {
+		return deviceId;
+	}
+	
 	public Date getPublishTime() {
 		return publishTime;
 	}

@@ -11,15 +11,22 @@ import org.springframework.messaging.MessagingException;
 
 import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
 
+/**
+ * Handle incoming bbqb device messages from gcp pubSub
+ * 
+ * @author laster
+ *
+ */
 public class DeviceMessageHandler implements MessageHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceMessageHandler.class);
 
+	// TODO: Move all @Value annotation to spring context
+	// configuration class and inject values from there
 	/**
 	 * Name of the gcp pub/sub topic where bbqb devices send messages to
 	 */
-	@Value("${bbq.backend.gcp.pubsub.message-header-deviceid}") // TODO: Move all @Value annotation to spring context
-																// configuration class and inject values from there
+	@Value("${bbq.backend.gcp.pubsub.message-header-deviceid}") 
 	private String deviceIdMessageHeader;
 
 	/**
@@ -31,6 +38,9 @@ public class DeviceMessageHandler implements MessageHandler {
 		this.deviceRepo = deviceRepo;
 	}
 
+	/**
+	 * Handle bbqb device status message by updating device document with the status information from the message
+	 */
 	@Override
 	public void handleMessage(Message<?> message) throws MessagingException {
 		LOGGER.info("Message arrived! Payload: " + new String((byte[]) message.getPayload()));
@@ -41,6 +51,7 @@ public class DeviceMessageHandler implements MessageHandler {
 
 		if (deviceRepo == null) {
 			throw new MessagingException("!!!!!!!!!!!!!! Repo is null!!!!!!!");
+			// TODO: Implement logic to handle this case more appropriately!
 		}
 		// Update device
 		deviceRepo.findById(deviceId).flatMap(device -> {

@@ -14,6 +14,12 @@ import org.springframework.messaging.MessageHandler;
 
 import de.bbqb.backend.gcp.firestore.DeviceMessageHandler;
 
+/**
+ * Configuration Class to configure spring context with beans etc. for gcp pupSub related instances/values
+ * 
+ * @author laster
+ *
+ */
 //@Configuration
 public class PubSubConfig {
 

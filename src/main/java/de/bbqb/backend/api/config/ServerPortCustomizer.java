@@ -9,6 +9,12 @@ import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+/**
+ * Configure Webserver Port by reading port information from properties file otherwise use default port 8080.
+ * 
+ * @author laster
+ *
+ */
 @Component
 public class ServerPortCustomizer implements WebServerFactoryCustomizer<ConfigurableWebServerFactory> {
 

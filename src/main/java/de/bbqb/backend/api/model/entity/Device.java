@@ -17,7 +17,7 @@ public class Device {
 	private Address address;
 
 	public Device() {
-	} // TODO: Remove. Currently in place because of development/testing purposes
+	}
 
 	public Device(String id, Integer number, Date publishTime, String status, Location location, Address address) {
 		super();

@@ -4,6 +4,12 @@ import de.bbqb.backend.api.model.entity.Device;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+/**
+ * Interface to handle business logic to interact with bbqb devices
+ * 
+ * @author laster
+ *
+ */
 public interface DeviceService {
 
 	public Mono<Device> createDevice(Device device);

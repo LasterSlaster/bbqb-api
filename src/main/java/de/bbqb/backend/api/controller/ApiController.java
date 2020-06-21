@@ -17,6 +17,12 @@ import de.bbqb.backend.api.model.service.DeviceService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+/**
+ * REST Controller with endpoints to manage device resources like accessing/updating/creating device information and sending messages to devices.
+ * 
+ * @author laster
+ *
+ */
 @CrossOrigin(origins = "*") // CORS configuration to allow all for the endpoints in this controller
 @RestController
 public class ApiController {

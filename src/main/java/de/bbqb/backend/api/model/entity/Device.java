@@ -16,9 +16,6 @@ public class Device {
 	private Location location;
 	private Address address;
 
-	public Device() {
-	}
-
 	public Device(String id, Integer number, Date publishTime, String status, Location location, Address address) {
 		super();
 		this.id = id;
@@ -27,6 +24,10 @@ public class Device {
 		this.status = status;
 		this.location = location;
 		this.address = address;
+	}
+	
+	public Device(String id, Device device) {
+		this(id, device.getNumber(), device.getPublishTime(), device.getStatus(), device.getLocation(), device.getAddress());
 	}
 
 	public String getId() {

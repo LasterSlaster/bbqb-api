@@ -3,6 +3,7 @@ package de.bbqb.backend.gcp.firestore;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -14,10 +15,12 @@ import com.google.api.services.cloudiot.v1.CloudIotScopes;
 import com.google.api.services.cloudiot.v1.model.SendCommandToDeviceRequest;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.firestore.Firestore;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.gcp.data.firestore.FirestoreTemplate;
 import org.springframework.stereotype.Service;
 
 import de.bbqb.backend.api.model.entity.Address;
@@ -42,7 +45,7 @@ public class FirestoreDeviceService implements DeviceService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FirestoreDeviceService.class);
 
 	private final DeviceRepo deviceRepo;
-
+	
 	@Value("${spring.cloud.gcp.project-id}")
 	private String gcpProjectId;
 
@@ -95,13 +98,18 @@ public class FirestoreDeviceService implements DeviceService {
 
 	@Override
 	public Mono<Device> createDevice(Device device) {
-		return deviceRepo.save(mapToDeviceDoc(device)).map((DeviceDoc deviceDoc) -> {
+		// TODO: Refactor document id generation
+		UUID uuid = UUID.randomUUID();
+		Device deviceWithId = new Device(uuid.toString(), device);
+
+		return deviceRepo.save(mapToDeviceDoc(deviceWithId)).map((DeviceDoc deviceDoc) -> {
 			return mapFromDeviceDoc(deviceDoc);
 		});
 	}
 
 	@Override
 	public Mono<Device> updateDevice(Device device) {
+		// updates an existing device otherwise creates a new one
 		return deviceRepo.save(mapToDeviceDoc(device)).map((DeviceDoc deviceDoc) -> {
 			return mapFromDeviceDoc(deviceDoc);
 		});

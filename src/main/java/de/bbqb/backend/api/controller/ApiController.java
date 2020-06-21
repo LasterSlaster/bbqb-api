@@ -18,7 +18,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * REST Controller with endpoints to manage device resources like accessing/updating/creating device information and sending messages to devices.
+ * REST Controller with endpoints to manage device resources like
+ * accessing/updating/creating device information and sending messages to
+ * devices.
  * 
  * @author laster
  *
@@ -58,16 +60,16 @@ public class ApiController {
 		return deviceService.readAllDevices();
 	}
 
-	@GetMapping("/devices/{deviceId}")
-	public Mono<ResponseEntity<Device>> getDevice(@PathVariable("deviceId") String deviceId) {
+	@GetMapping("/devices/{id}")
+	public Mono<ResponseEntity<Device>> getDevice(@PathVariable("id") String deviceId) {
 		ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
 
 		return deviceService.readDevice(deviceId).map((Device device) -> {
 			// create Response
-			if (device == null) {
+			if (device == null) {// TODO: Check if this is ever the case
 				return ResponseEntity.notFound().build();
 			} else {
-				URI uri = builder.path("/{id}").buildAndExpand(device.getId()).toUri();
+				URI uri = builder.build().toUri();
 				return ResponseEntity.created(uri).body(device);
 			}
 		});
@@ -79,8 +81,8 @@ public class ApiController {
 
 		return deviceService.createDevice(device).map((Device savedDevice) -> {
 			// create Response
-			if (savedDevice == null) {
-				return ResponseEntity.notFound().build();
+			if (savedDevice == null) { // TODO: Check if this is ever the case
+				return ResponseEntity.unprocessableEntity().build();
 			} else {
 				URI uri = builder.path("/{id}").buildAndExpand(savedDevice.getId()).toUri();
 
@@ -89,19 +91,24 @@ public class ApiController {
 		});
 	}
 
-	@PutMapping("/devices")
-	public Mono<ResponseEntity<Device>> putDevices(@RequestBody Device device) {
+	@PutMapping("/devices/{id}")
+	public Mono<ResponseEntity<Device>> putDevices(@PathVariable("id") String deviceId, @RequestBody Device device) {
 		ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
 
-		return deviceService.updateDevice(device).map((Device updatedDevice) -> {
-			// create Response
-			if (updatedDevice == null) {
-				return ResponseEntity.notFound().build();
-			} else {
-				URI uri = builder.path("/{id}").buildAndExpand(device.getId()).toUri();
+		if (device.getId() != null && device.getId().equals(deviceId)) {
+			return deviceService.updateDevice(device).map((Device updatedDevice) -> {
+				// create Response
+				if (updatedDevice == null) {// TODO: Check if this is ever the case
+					return ResponseEntity.unprocessableEntity().build();
+				} else {
+					URI uri = builder.build().toUri();
 
-				return ResponseEntity.created(uri).body(updatedDevice);
-			}
-		});
+					return ResponseEntity.created(uri).body(updatedDevice);
+				}
+			});
+		} else {
+			return Mono.just(ResponseEntity.unprocessableEntity().build()); // TODO: Create message id is missing or not
+																			// equal to deviceId
+		}
 	}
 }

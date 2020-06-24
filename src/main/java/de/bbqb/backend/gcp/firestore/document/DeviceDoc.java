@@ -8,6 +8,13 @@ import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.firestore.annotation.PropertyName;
 
 // TODO: Rework data types:  use geopoint for lat/lngt,status -> int or string?, are number and id correct?
+/**
+ * Device bean to represent a device document from a gcp firestore database.
+ * This class is used for Jackson un-/marshaling
+ * 
+ * @author laster
+ *
+ */
 @Document(collectionName = "devicesCollection")
 public class DeviceDoc {
 

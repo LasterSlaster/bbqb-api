@@ -1,13 +1,11 @@
 package de.bbqb.backend.api.model.entity;
 
-import java.util.Date;
-
 import com.google.api.client.util.DateTime;
 
 /**
  * BBQ-Butler business object to hold device information
  * 
- * @author laster
+ * @author Marius Degen
  */
 public class Device {
 

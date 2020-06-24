@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 /**
  * Configure Webserver Port by reading port information from properties file otherwise use default port 8080.
  * 
- * @author laster
+ * @author Marius Degen
  *
  */
 @Component

@@ -17,7 +17,7 @@ import com.google.cloud.Timestamp;
 /**
  * Handle incoming bbqb device messages from gcp pubSub
  * 
- * @author laster
+ * @author Marius Degen
  *
  */
 public class DeviceMessageHandler implements MessageHandler {

@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono;
  * accessing/updating/creating device information and sending messages to
  * devices.
  * 
- * @author laster
+ * @author Marius Degen
  *
  */
 @CrossOrigin(origins = "*") // CORS configuration to allow all for the endpoints in this controller

@@ -36,7 +36,7 @@ import reactor.core.publisher.Mono;
 /**
  * Device service to retrieve device information from a gcp firestore nosql db
  * 
- * @author laster
+ * @author Marius Degen
  *
  */
 @Service

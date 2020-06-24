@@ -7,7 +7,7 @@ import org.springframework.cloud.gcp.data.firestore.repository.config.EnableReac
 /**
  * Configure and start the application
  * 
- * @author laster
+ * @author Marius Degen
  *
  */
 @SpringBootApplication(scanBasePackages = { "de.bbqb" })

@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 /**
  * Interface to handle business logic to interact with bbqb devices
  * 
- * @author laster
+ * @author Marius Degen
  *
  */
 public interface DeviceService {

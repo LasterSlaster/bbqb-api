@@ -4,7 +4,7 @@ package de.bbqb.backend.api.model.entity;
 /**
  * BBQ-Butler business object to hold address information
  * 
- * @author laster
+ * @author Marius Degen
  */
 public class Address {
 

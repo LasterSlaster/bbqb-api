@@ -11,7 +11,7 @@ import reactor.core.publisher.Flux;
  * instance of this interface is provided by spring and injected into the
  * context at runtime
  * 
- * @author laster
+ * @author Marius Degen
  *
  */
 @Repository

@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * Spring Context Configuration Class to provide additional beans ect. to
  * ApiApplication class
  * 
- * @author laster
+ * @author Marius Degen
  *
  */
 //@Configuration

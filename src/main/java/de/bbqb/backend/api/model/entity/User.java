@@ -3,7 +3,7 @@ package de.bbqb.backend.api.model.entity;
 /**
  * BBQ-Butler business object to hold user information
  * 
- * @author laster
+ * @author Marius Degen
  */
 public class User {
 

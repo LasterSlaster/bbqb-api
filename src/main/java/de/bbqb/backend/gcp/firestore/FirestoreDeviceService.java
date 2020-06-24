@@ -66,7 +66,7 @@ public class FirestoreDeviceService implements DeviceService {
 	public void openDevice(Device device) {
 		try {
 			final String devicePath = String.format("projects/%s/locations/%s/registries/%s/devices/%s", gcpProjectId,
-					cloudRegion, registryName, device.getId());
+					cloudRegion, registryName, device.getDeviceId());
 
 			GoogleCredentials credential = GoogleCredentials.getApplicationDefault().createScoped(CloudIotScopes.all());
 			JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();

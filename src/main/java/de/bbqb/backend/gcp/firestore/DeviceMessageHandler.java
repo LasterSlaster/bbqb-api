@@ -13,7 +13,6 @@ import org.springframework.messaging.MessagingException;
 
 import com.google.cloud.Timestamp;
 
-import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
 
 /**
  * Handle incoming bbqb device messages from gcp pubSub
@@ -59,7 +58,7 @@ public class DeviceMessageHandler implements MessageHandler {
 		}
 		// Update device
 		deviceRepo.findById(deviceId).flatMap(device -> {
-			device.setPublishTime(Timestamp.ofTimeMicroseconds(deviceTimestamp)); // TODO: Check if we store time in microsec, nano or sec
+			device.setPublishTime(Timestamp.of(new Date(deviceTimestamp)));
 			device.setStatus(deviceStatus);
 
 			// Update device document in database

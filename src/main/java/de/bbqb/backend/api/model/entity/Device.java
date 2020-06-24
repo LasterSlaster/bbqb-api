@@ -2,6 +2,8 @@ package de.bbqb.backend.api.model.entity;
 
 import java.util.Date;
 
+import com.google.api.client.util.DateTime;
+
 /**
  * BBQ-Butler business object to hold device information
  * 
@@ -12,12 +14,12 @@ public class Device {
 	private String id;
 	private String deviceId;
 	private Integer number; // TODO: Change to String?
-	private Date publishTime;
+	private DateTime publishTime;
 	private String status; // TODO: Change to Enum?
 	private Location location;
 	private Address address;
 
-	public Device(String id, String deviceId, Integer number, Date publishTime, String status, Location location, Address address) {
+	public Device(String id, String deviceId, Integer number, DateTime publishTime, String status, Location location, Address address) {
 		super();
 		this.id = id;
 		this.deviceId = id;
@@ -44,7 +46,7 @@ public class Device {
 		return deviceId;
 	}
 	
-	public Date getPublishTime() {
+	public DateTime getPublishTime() {
 		return publishTime;
 	}
 

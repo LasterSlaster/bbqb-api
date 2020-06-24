@@ -4,25 +4,23 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.DateTime;
 import com.google.api.services.cloudiot.v1.CloudIot;
 import com.google.api.services.cloudiot.v1.CloudIotScopes;
 import com.google.api.services.cloudiot.v1.model.SendCommandToDeviceRequest;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.Timestamp;
-import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.GeoPoint;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.gcp.data.firestore.FirestoreTemplate;
 import org.springframework.stereotype.Service;
 
 import de.bbqb.backend.api.model.entity.Address;
@@ -132,7 +130,7 @@ public class FirestoreDeviceService implements DeviceService {
 		Location location = device.getLocation();
 
 		DeviceDoc deviceDoc = new DeviceDoc(device.getId(), device.getDeviceId(), device.getNumber().toString(),
-				Timestamp.ofTimeMicroseconds(device.getPublishTime().getTime()), device.getStatus(), // TODO: Check if we store time in microsec, nano or sec
+				Timestamp.of(new Date(device.getPublishTime().getValue())), device.getStatus(),
 				new GeoPoint(location.getLongitude(), location.getLatitude()), address.getName(),
 				address.getStreet(), address.getHouseNumber(), address.getCity(), address.getPostalcode(),
 				address.getCountry());
@@ -146,7 +144,7 @@ public class FirestoreDeviceService implements DeviceService {
 		Address address = new Address(deviceDoc.getCountry(), deviceDoc.getPostalCode(), deviceDoc.getCity(),
 				deviceDoc.getStreet(), deviceDoc.getHouseNumber(), deviceDoc.getAddressName());
 		Device device = new Device(deviceDoc.getId(), deviceDoc.getDeviceId(), Integer.valueOf(deviceDoc.getNumber()),
-				new Date(deviceDoc.getPublishTime().getSeconds()), // TODO: Check if we store time in microsec, nano or sec
+				new DateTime(deviceDoc.getPublishTime().getSeconds() * 1000),
 				deviceDoc.getStatus(), location, address);
 
 		return device;

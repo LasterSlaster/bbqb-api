@@ -11,13 +11,13 @@ public class Device {
 
 	private String id;
 	private String deviceId;
-	private Integer number; // TODO: Change to String?
-	private DateTime publishTime;
+	private String number; // TODO: Change to String?
+	private DateTime publishTime; // TODO: Think about changing this datatype
 	private String status; // TODO: Change to Enum?
 	private Location location;
 	private Address address;
 
-	public Device(String id, String deviceId, Integer number, DateTime publishTime, String status, Location location, Address address) {
+	public Device(String id, String deviceId, String number, DateTime publishTime, String status, Location location, Address address) {
 		super();
 		this.id = id;
 		this.deviceId = id;
@@ -36,7 +36,7 @@ public class Device {
 		return id;
 	}
 
-	public Integer getNumber() {
+	public String getNumber() {
 		return number;
 	}
 	

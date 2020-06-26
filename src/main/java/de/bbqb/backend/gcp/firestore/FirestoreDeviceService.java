@@ -78,12 +78,12 @@ public class FirestoreDeviceService implements DeviceService {
 			Base64.Encoder encoder = Base64.getEncoder();
 			String encPayload = encoder.encodeToString(this.openDeviceMessage.getBytes(StandardCharsets.UTF_8.name()));
 			req.setBinaryData(encPayload);
-			System.out.printf("Sending command to %s%n", devicePath);
+			LOGGER.info("Sending command to %s%n", devicePath);
 
 			service.projects().locations().registries().devices().sendCommandToDevice(devicePath, req).execute();
-			System.out.println("Command response: sent");
+			LOGGER.info("Command response: sent");
 		} catch (Exception e) {
-			System.out.println(e.getMessage() + e.getStackTrace());
+			LOGGER.info(e.getMessage() + e.getStackTrace());
 		}
 	}
 
@@ -143,7 +143,7 @@ public class FirestoreDeviceService implements DeviceService {
 				deviceDoc.getLocation().getLongitude());
 		Address address = new Address(deviceDoc.getCountry(), deviceDoc.getPostalCode(), deviceDoc.getCity(),
 				deviceDoc.getStreet(), deviceDoc.getHouseNumber(), deviceDoc.getAddressName());
-		Device device = new Device(deviceDoc.getId(), deviceDoc.getDeviceId(), Integer.valueOf(deviceDoc.getNumber()),
+		Device device = new Device(deviceDoc.getId(), deviceDoc.getDeviceId(), deviceDoc.getNumber(),
 				new DateTime(deviceDoc.getPublishTime().getSeconds() * 1000),
 				deviceDoc.getStatus(), location, address);
 

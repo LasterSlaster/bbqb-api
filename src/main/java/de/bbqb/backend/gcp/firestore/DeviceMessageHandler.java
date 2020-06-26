@@ -4,7 +4,6 @@ import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gcp.pubsub.support.BasicAcknowledgeablePubsubMessage;
 import org.springframework.cloud.gcp.pubsub.support.GcpPubSubHeaders;
 import org.springframework.messaging.Message;
@@ -12,7 +11,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 
 import com.google.cloud.Timestamp;
-
 
 /**
  * Handle incoming bbqb device messages from gcp pubSub
@@ -24,12 +22,9 @@ public class DeviceMessageHandler implements MessageHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceMessageHandler.class);
 
-	// TODO: Move all @Value annotation to spring context
-	// configuration class and inject values from there
 	/**
 	 * Name of the gcp pub/sub topic where bbqb devices send messages to
 	 */
-	@Value("${bbq.backend.gcp.pubsub.message-header-deviceid}") 
 	private String deviceIdMessageHeader;
 
 	/**
@@ -37,39 +32,42 @@ public class DeviceMessageHandler implements MessageHandler {
 	 */
 	private final DeviceRepo deviceRepo;
 
-	public DeviceMessageHandler(DeviceRepo deviceRepo) {
+	public DeviceMessageHandler(DeviceRepo deviceRepo, String deviceIdMessageHeader) {
 		this.deviceRepo = deviceRepo;
+		this.deviceIdMessageHeader = deviceIdMessageHeader;
 	}
 
 	/**
-	 * Handle bbqb device status message by updating device document with the status information from the message
+	 * Handle bbqb device status message by updating device document with the status
+	 * information from the message
 	 */
 	@Override
 	public void handleMessage(Message<?> message) throws MessagingException {
-		LOGGER.info("Message arrived! Payload: " + new String((byte[]) message.getPayload()));
+		//LOGGER.info("Message arrived! Payload: " + new String((byte[]) message.getPayload()));
 		// Retrieve attributes and message body from message
-		String deviceId = message.getHeaders().get(deviceIdMessageHeader, String.class);
+		String deviceId = message.getHeaders().get(this.deviceIdMessageHeader, String.class);
 		String deviceStatus = message.getPayload().toString();
 		Long deviceTimestamp = message.getHeaders().getTimestamp();
 
-		if (deviceRepo == null) {
+		if (this.deviceRepo == null) {
 			throw new MessagingException("!!!!!!!!!!!!!! Repo is null!!!!!!!");
 			// TODO: Implement logic to handle this case more appropriately!
-		}
-		// Update device
-		deviceRepo.findById(deviceId).flatMap(device -> {
-			device.setPublishTime(Timestamp.of(new Date(deviceTimestamp)));
-			device.setStatus(deviceStatus);
+		} else {
+			// Update device
+			this.deviceRepo.findById(deviceId).flatMap(device -> {
+				device.setPublishTime(Timestamp.of(new Date(deviceTimestamp)));
+				device.setStatus(deviceStatus);
 
-			// Update device document in database
-			return deviceRepo.save(device);
-		}).subscribe(a -> {
-			// Acknowledge the message
-			BasicAcknowledgeablePubsubMessage originalMessage = message.getHeaders()
-					.get(GcpPubSubHeaders.ORIGINAL_MESSAGE, BasicAcknowledgeablePubsubMessage.class);
-			originalMessage.ack();
-		}); // If no Device is found do nothing. In such cases the message is not
-			// acknowledged
+				// Update device document in database
+				return this.deviceRepo.save(device);
+			}).subscribe(a -> {
+				// Acknowledge the message
+				BasicAcknowledgeablePubsubMessage originalMessage = message.getHeaders()
+						.get(GcpPubSubHeaders.ORIGINAL_MESSAGE, BasicAcknowledgeablePubsubMessage.class);
+				originalMessage.ack();
+			}); // If no Device is found do nothing. In such cases the message is not
+				// acknowledged
+		}
 	}
 
 }

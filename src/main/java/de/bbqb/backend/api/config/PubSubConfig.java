@@ -13,6 +13,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
 import de.bbqb.backend.gcp.firestore.DeviceMessageHandler;
+import de.bbqb.backend.gcp.firestore.DeviceRepo;
 
 /**
  * Configuration Class to configure spring context with beans etc. for gcp pupSub related instances/values
@@ -28,6 +29,12 @@ public class PubSubConfig {
 	 */
 	@Value("${bbq.backend.gcp.pubsub.incoming-topic}")
 	private String pubSubIncomingTopic;
+
+	/**
+	 * Name of the gcp pub/sub topic where bbqb devices send messages to
+	 */
+	@Value("${bbq.backend.gcp.pubsub.message-header-deviceid}")
+	private String deviceIdMessageHeader;
 
 	/**
 	 * Part of pub/sub subscription processing Provides a channel to which a
@@ -52,11 +59,21 @@ public class PubSubConfig {
 	@Bean
 	public PubSubInboundChannelAdapter messageChannelAdapter(
 			@Qualifier("pubsubInputChannel") MessageChannel inputChannel, PubSubTemplate pubSubTemplate) {
-		PubSubInboundChannelAdapter adapter = new PubSubInboundChannelAdapter(pubSubTemplate, pubSubIncomingTopic);
+		PubSubInboundChannelAdapter adapter = new PubSubInboundChannelAdapter(pubSubTemplate, this.pubSubIncomingTopic);
 		adapter.setOutputChannel(inputChannel);
 		adapter.setAckMode(AckMode.MANUAL);
 
 		return adapter;
+	}
+	
+	/**
+	 * Part of pub/sub subscription processing
+	 * 
+	 * @return A configured DeviceMessageHandler  
+	 */
+	@Bean
+	public DeviceMessageHandler deviceMessageHandler(DeviceRepo deviceRepo) {
+		return new DeviceMessageHandler(deviceRepo, this.deviceIdMessageHeader);
 	}
 
 	/**

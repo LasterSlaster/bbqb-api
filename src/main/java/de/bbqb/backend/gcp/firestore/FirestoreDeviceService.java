@@ -130,8 +130,8 @@ public class FirestoreDeviceService implements DeviceService {
 		Location location = device.getLocation();
 
 		DeviceDoc deviceDoc = new DeviceDoc(device.getId(), device.getDeviceId(), device.getNumber().toString(),
-				Timestamp.of(new Date(device.getPublishTime().getValue())), device.getStatus(),
-				new GeoPoint(location.getLongitude(), location.getLatitude()), address.getName(),
+				Timestamp.of(new Date(device.getPublishTime())), device.getStatus(),
+				new GeoPoint(location.getLatitude(), location.getLongitude()), address.getName(),
 				address.getStreet(), address.getHouseNumber(), address.getCity(), address.getPostalcode(),
 				address.getCountry());
 
@@ -144,7 +144,7 @@ public class FirestoreDeviceService implements DeviceService {
 		Address address = new Address(deviceDoc.getCountry(), deviceDoc.getPostalCode(), deviceDoc.getCity(),
 				deviceDoc.getStreet(), deviceDoc.getHouseNumber(), deviceDoc.getAddressName());
 		Device device = new Device(deviceDoc.getId(), deviceDoc.getDeviceId(), deviceDoc.getNumber(),
-				new DateTime(deviceDoc.getPublishTime().getSeconds() * 1000),
+				deviceDoc.getPublishTime().getSeconds() * 1000,
 				deviceDoc.getStatus(), location, address);
 
 		return device;

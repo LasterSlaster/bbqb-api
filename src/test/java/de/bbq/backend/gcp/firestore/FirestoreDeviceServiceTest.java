@@ -27,7 +27,7 @@ public class FirestoreDeviceServiceTest {
 
 	private final String number = "deviceId";
 
-	private final DateTime publishTime = new DateTime(new Date());
+	private final Long publishTime = new Date().getTime();
 
 	private final String status = "deviceId";
 

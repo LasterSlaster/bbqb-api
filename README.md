@@ -6,12 +6,54 @@
 `./mvnw -DskipTests package appengine:deploy -Dapp.deploy.version=local -Dapp.deploy.promote=False`
 
 ## Funktion
-- Funktionalität des REST-Service beschreiben
+Die App realisiert einen REST-Service als API für CRUD-Operationen zur Kommunikation mit BBQB-Devices. Die API ermöglicht es außerdem Signale an die Devices zu senden.
 
 ## Endpoints
-- POST /devices: Create a new device doc. Expects a JSON Body with following attributes: id:String, number:String, publishTime:long, status:String, location:String, address:String
+- GET /: Test endpoint to check if service is available
 - GET /devices: Retrieve all devices docs
 - GET /devices/{id}: Get a device doc by its id
+- POST /devices: Create a new device doc. Expects a JSON Body with a device object
+- PUT /devices/{id}: Update an existing device doc or if no device doc with the specified id exists create a new one at that location. Excpects a JSON body with a the device object to update/create. Path id and body id have to be the same!
+- POST /message: Send an open signal to a device to unlock it. Body must include a device object with value id.
+
+### Device Object
+{
+    "id": "1mdA7jOgGoAj7SKCRouf",
+    "deviceId": "1mdA7jOgGoAj7SKCRouf",
+    "number": "1",
+    "publishTime": 1593253000,
+    "status": "idle",
+    "location": {
+        "latitude": 7.0,
+        "longitude": 100.0
+    },
+    "address": {
+        "country": "idle",
+        "postalcode": "78467",
+        "city": "Konstanz",
+        "street": "Konstanzerstraße",
+        "houseNumber": "12",
+        "name": "HTWG Strandbar"
+    }
+}
+
+## Firestore Database
+This service try's to communicate with a gcp firestore to manage device information.
+It expects a device document of the following structure:
+
+{
+addressName: "HTWG Strandbar" (String)
+city: "Konstanz" (String)
+country: "idle" (String)
+deviceId: "a708a6de-3ca3-4e2e-935a-2998091f033a" (String)
+houseNumber: "12" (String)
+location: [7° N, 100° E] (Geopunkt)
+number: "1212" (String)
+postalCode: "78467" (String)
+publishTime: 19. Januar 1970 um 11:34:13 UTC+1 (Zeitstempel)
+status: "idle" (String)
+street: "Konstanzerstraße" (String)
+}
 
 ## Development
 ### Configuration

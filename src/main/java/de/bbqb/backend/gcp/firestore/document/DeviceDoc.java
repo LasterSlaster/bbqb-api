@@ -15,7 +15,7 @@ import com.google.cloud.firestore.annotation.PropertyName;
  * @author laster
  *
  */
-@Document(collectionName = "devicesCollection")
+@Document(collectionName = "devices")
 public class DeviceDoc {
 
 	@DocumentId

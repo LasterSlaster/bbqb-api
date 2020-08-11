@@ -22,7 +22,7 @@ public class Device {
 	public Device(String id, String deviceId, String number, Long publishTime, String status, Location location, Address address) {
 		super();
 		this.id = id;
-		this.deviceId = id;
+		this.deviceId = deviceId;
 		this.number = number;
 		this.publishTime = publishTime;
 		this.status = status;

@@ -1,13 +1,17 @@
 package de.bbqb.backend.api;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+import com.sun.tools.javac.util.Assert;
+
+import reactor.core.publisher.Mono;
+
+//@SpringBootTest
 class ApiApplicationTests {
 
 	@Test
 	void contextLoads() {
+
 	}
 
 }

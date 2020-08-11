@@ -39,7 +39,8 @@ public class FirestoreDeviceServiceTest {
 	public void setUp() {
 		this.deviceRepoMock = new DeviceRepoMock(); 
 
-		this.sut = new FirestoreDeviceService(deviceRepoMock);
+		// TODO: Create Firestore mock
+		this.sut = new FirestoreDeviceService(deviceRepoMock, null);
 	}
 
 	@Test

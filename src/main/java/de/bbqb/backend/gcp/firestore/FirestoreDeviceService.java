@@ -3,19 +3,18 @@ package de.bbqb.backend.gcp.firestore;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
-import java.util.UUID;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.DateTime;
 import com.google.api.services.cloudiot.v1.CloudIot;
 import com.google.api.services.cloudiot.v1.CloudIotScopes;
 import com.google.api.services.cloudiot.v1.model.SendCommandToDeviceRequest;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.Timestamp;
+import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.GeoPoint;
 
 import org.slf4j.Logger;
@@ -46,6 +45,8 @@ public class FirestoreDeviceService implements DeviceService {
 
 	private final DeviceRepo deviceRepo;
 	
+	private final Firestore firestore;
+	
 	@Value("${spring.cloud.gcp.project-id}")
 	private String gcpProjectId;
 
@@ -58,8 +59,9 @@ public class FirestoreDeviceService implements DeviceService {
 	@Value("${bbq.backend.gcp.iot.message.open-device}")
 	private String openDeviceMessage;
 
-	public FirestoreDeviceService(DeviceRepo deviceRepo) {
+	public FirestoreDeviceService(DeviceRepo deviceRepo, Firestore firestore) {
 		this.deviceRepo = deviceRepo;
+		this.firestore = firestore;
 	}
 
 	@Override
@@ -94,9 +96,10 @@ public class FirestoreDeviceService implements DeviceService {
 
 	@Override
 	public Mono<Device> createDevice(Device device) {
-		// TODO: Refactor document id generation
-		UUID uuid = UUID.randomUUID();
-		Device deviceWithId = new Device(uuid.toString(), device);
+		// Auto-generate an unique id for the new firestore device document
+		// This makes sure that a new document is created and no existing one is overridden 
+		String id = firestore.collection("devices").document().getId();
+		Device deviceWithId = new Device(id, device);
 
 		return deviceRepo.save(mapToDeviceDoc(deviceWithId)).map((DeviceDoc deviceDoc) -> {
 			return mapFromDeviceDoc(deviceDoc);

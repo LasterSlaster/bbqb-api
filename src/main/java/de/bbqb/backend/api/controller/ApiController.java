@@ -42,12 +42,6 @@ public class ApiController {
 		return "Hello World";
 	}
 
-	/**
-	 * publish a message to a device like open bbqb
-	 * 
-	 * @param deviceDoc
-	 * @return
-	 */
 	@PostMapping("/message")
 	public ResponseEntity<Device> postMessage(@RequestBody Device device) {
 		deviceService.openDevice(device);
@@ -65,50 +59,35 @@ public class ApiController {
 		ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
 
 		return deviceService.readDevice(deviceId).map((Device device) -> {
-			// create Response
-			if (device == null) {// TODO: Check if this is ever the case
-				return ResponseEntity.notFound().build();
-			} else {
-				URI uri = builder.build().toUri();
-				return ResponseEntity.created(uri).body(device);
-			}
-		});
+			URI uri = builder.build().toUri();
+			return ResponseEntity.created(uri).body(device);
+		}).defaultIfEmpty(ResponseEntity.notFound().build());
 	}
 
 	@PostMapping("/devices")
 	public Mono<ResponseEntity<Device>> postDevices(@RequestBody Device device) {
 		ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
 
+		// TODO: Validate device object
 		return deviceService.createDevice(device).map((Device savedDevice) -> {
-			// create Response
-			if (savedDevice == null) { // TODO: Check if this is ever the case
-				return ResponseEntity.unprocessableEntity().build();
-			} else {
-				URI uri = builder.path("/{id}").buildAndExpand(savedDevice.getId()).toUri();
-
-				return ResponseEntity.created(uri).body(savedDevice);
-			}
+			URI uri = builder.path("/{id}").buildAndExpand(savedDevice.getId()).toUri();
+			return ResponseEntity.created(uri).body(savedDevice);
 		});
 	}
 
 	@PutMapping("/devices/{id}")
-	public Mono<ResponseEntity<Device>> putDevices(@PathVariable("id") String deviceId, @RequestBody Device device) {
+	public Mono<ResponseEntity<Device>> putDevices(@PathVariable("id") String id, @RequestBody Device device) {
 		ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
 
-		if (device.getId() != null && device.getId().equals(deviceId)) {
+		// TODO: Validate device object more
+		if (device.getId() != null && device.getId().equals(id)) {
 			return deviceService.updateDevice(device).map((Device updatedDevice) -> {
-				// create Response
-				if (updatedDevice == null) {// TODO: Check if this is ever the case
-					return ResponseEntity.unprocessableEntity().build();
-				} else {
-					URI uri = builder.build().toUri();
-
-					return ResponseEntity.created(uri).body(updatedDevice);
-				}
+				URI uri = builder.build().toUri();
+				return ResponseEntity.created(uri).body(updatedDevice);
 			});
 		} else {
-			return Mono.just(ResponseEntity.unprocessableEntity().build()); // TODO: Create message id is missing or not
-																			// equal to deviceId
+			return Mono.just(ResponseEntity.unprocessableEntity().build()); 
+			// TODO: Create message id is missing or not equal to deviceId
 		}
 	}
 }

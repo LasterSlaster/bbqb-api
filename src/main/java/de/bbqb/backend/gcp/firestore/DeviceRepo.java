@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Read/Write device information from/to a gcp firestore NoSql database An
@@ -16,4 +17,5 @@ import reactor.core.publisher.Flux;
  */
 @Repository
 public interface DeviceRepo extends FirestoreReactiveRepository<DeviceDoc> {
+	Mono<DeviceDoc> findFirstByDeviceId(String id);
 }

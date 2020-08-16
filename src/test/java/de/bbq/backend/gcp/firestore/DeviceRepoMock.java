@@ -111,4 +111,10 @@ public class DeviceRepoMock implements DeviceRepo {
 		return null;
 	}
 
+	@Override
+	public Mono<DeviceDoc> findFirstByDeviceId(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

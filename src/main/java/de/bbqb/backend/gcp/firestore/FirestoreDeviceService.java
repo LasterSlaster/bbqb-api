@@ -32,11 +32,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 // TODO: Implement business layer and separate business logic from external systems like REST and DB(firestore,pubsub,iot)
+// TODO: Move Documentation to Interface
+
 /**
  * Device service to retrieve device information from a gcp firestore nosql db
  * 
  * @author Marius Degen
- *
  */
 @Service
 public class FirestoreDeviceService implements DeviceService {
@@ -64,6 +65,12 @@ public class FirestoreDeviceService implements DeviceService {
 		this.firestore = firestore;
 	}
 
+	/**
+	 * Send the open signal to the IoT-Device {@code device}
+	 * 
+	 * @param device The device to send the signal to. 
+	 * The IoT-Device is evaluated by its id.
+	 */
 	@Override
 	public void openDevice(Device device) {
 		try {
@@ -89,11 +96,24 @@ public class FirestoreDeviceService implements DeviceService {
 		}
 	}
 
+	/**
+	 * Send the lock signal to the IoT-Device specified by {@code device}
+	 * 
+	 * @param device The device to send the signal to. 
+	 * The IoT-Device is evaluated by its id.
+	 */
 	@Override
 	public void lockDevice(Device device) {
 		// TODO Auto-generated method stub
 	}
 
+	/**
+	 * Create a new Device with the information from device.
+	 * 
+	 * @param device The device to be saved. Must not be null.
+	 * @return Mono emitting the saved device
+	 * @throws  {@link IllegalArgumentException} in case the given entity is null.
+	 */
 	@Override
 	public Mono<Device> createDevice(Device device) {
 		// Auto-generate an unique id for the new firestore device document
@@ -106,14 +126,28 @@ public class FirestoreDeviceService implements DeviceService {
 		});
 	}
 
+	/**
+	 * Updates an existing device document with the information 
+	 * from device otherwise creates a new one.
+	 * 
+	 * @param device update the device with its information. Must not be null.
+	 * @return Mono emitting the updated device
+	 * @throws  {@link IllegalArgumentException} in case the given entity is null.
+	 */
 	@Override
 	public Mono<Device> updateDevice(Device device) {
-		// updates an existing device otherwise creates a new one
 		return deviceRepo.save(mapToDeviceDoc(device)).map((DeviceDoc deviceDoc) -> {
 			return mapFromDeviceDoc(deviceDoc);
 		});
 	}
 
+	/**
+	 * Read a single device specified by the device id
+	 * 
+	 * @param deviceId The id of the device to read. Must not be null.
+	 * @return Mono emitting the device specified by device id or Mono.empty if none found.
+	 * @throws {@link IllegalArgumentException} in case the given id is null.
+	 */
 	@Override
 	public Mono<Device> readDevice(String deviceId) {
 		return deviceRepo.findById(deviceId).map((DeviceDoc deviceDoc) -> {
@@ -121,6 +155,11 @@ public class FirestoreDeviceService implements DeviceService {
 		});
 	}
 
+	/**
+	 * Returns all devices.
+	 * 
+	 * @return Flux emitting all devices
+	 */
 	@Override
 	public Flux<Device> readAllDevices() {
 		return deviceRepo.findAll().map((DeviceDoc deviceDoc) -> {
@@ -128,6 +167,12 @@ public class FirestoreDeviceService implements DeviceService {
 		});
 	}
 
+	/**
+	 * Map a Device object to a DeviceDoc object.
+	 * 
+	 * @param device The device to map to a DeviceDoc
+	 * @return A DeviceDoc with the information from device
+	 */
 	private DeviceDoc mapToDeviceDoc(Device device) {
 		Address address = device.getAddress();
 		Location location = device.getLocation();
@@ -141,6 +186,12 @@ public class FirestoreDeviceService implements DeviceService {
 		return deviceDoc;
 	}
 
+	/**
+	 * Map a DeviceDoc object to a Device object.
+	 * 
+	 * @param deviceDoc The DeviceDoc to map to a Device
+	 * @return ADevice with the information from deviceDoc
+	 */
 	private Device mapFromDeviceDoc(DeviceDoc deviceDoc) {
 		Location location = new Location(deviceDoc.getLocation().getLatitude(),
 				deviceDoc.getLocation().getLongitude());
@@ -153,5 +204,5 @@ public class FirestoreDeviceService implements DeviceService {
 
 		return device;
 	}
-
+	
 }

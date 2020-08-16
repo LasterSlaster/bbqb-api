@@ -5,7 +5,8 @@ import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
 import reactor.core.publisher.Flux;
 
 /**
- * Read/Write device information from/to a google firestore NoSql database
+ * Read/Write device information from/to a gcp firestore NoSql database
+ * An instance of this interface is provided by spring and injected into the context at runtime
  * 
  * @author laster
  *

@@ -2,6 +2,10 @@ package de.bbqb.backend.api.model.entity;
 
 import java.util.Date;
 
+/**
+ * BBQ-Butler business object to hold device information
+ * @author laster
+ */
 public class Device {
 
 	private String id;
@@ -11,7 +15,7 @@ public class Device {
 	private Location location;
 	private Address address;
 	
-	public Device() {} //TODO:Remove
+	public Device() {} //TODO: Remove. Currently in place because of development/testing purposes
 
 	public Device(String id, Integer number, Date publishTime, String status, Location location, Address address) {
 		super();
@@ -26,37 +30,19 @@ public class Device {
 	public String getId() {
 		return id;
 	}
-	public void setId(String id) {
-		this.id = id;
-	}
 	public Integer getNumber() {
 		return number;
-	}
-	public void setNumber(Integer number) {
-		this.number = number;
 	}
 	public Date getPublishTime() {
 		return publishTime;
 	}
-	public void setPublishTime(Date publishTime) {
-		this.publishTime = publishTime;
-	}
 	public String getStatus() {
 		return status;
-	}
-	public void setStatus(String status) {
-		this.status = status;
 	}
 	public Location getLocation() {
 		return location;
 	}
-	public void setLocation(Location location) {
-		this.location = location;
-	}
 	public Address getAddress() {
 		return address;
-	}
-	public void setAddress(Address address) {
-		this.address = address;
 	}
 }

@@ -2,7 +2,8 @@ package de.bbqb.backend.api.model.entity;
 
 /**
  * BBQ-Butler business object to hold location information based on lat/long
- * @author laster
+ * 
+ * @author Marius Degen
  */
 public class Location {
 
@@ -18,6 +19,7 @@ public class Location {
 	public Double getLatitude() {
 		return latitude;
 	}
+
 	public Double getLongitude() {
 		return longitude;
 	}

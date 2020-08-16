@@ -2,34 +2,49 @@ package de.bbqb.backend.gcp.firestore.document;
 
 import org.springframework.cloud.gcp.data.firestore.Document;
 
+import com.google.cloud.Timestamp;
+import com.google.cloud.firestore.GeoPoint;
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.firestore.annotation.PropertyName;
 
-@Document(collectionName="devicesCollection")
+// TODO: Rework data types:  use geopoint for lat/lngt,status -> int or string?, are number and id correct?
+/**
+ * Device bean to represent a device document from a gcp firestore database.
+ * This class is used for Jackson un-/marshaling
+ * 
+ * @author laster
+ *
+ */
+@Document(collectionName = "devices")
 public class DeviceDoc {
 
 	@DocumentId
 	private String id;
+	private String deviceId;
 	private String number;
-	private String publishTime;
+	private Timestamp publishTime;
 	private String status;
-	private String longitude; //TODO: Change location address type
-	private String latitude;
+	private GeoPoint location;
 	private String addressName;
 	private String street;
 	private String houseNumber;
 	private String city;
 	private String postalCode;
 	private String country;
-	
-	public DeviceDoc(String id, String number, String publishTime, String status, String longitude, String latitude, String addressName, String street, String houseNumber, String city, String postalCode, String country) {
+
+	public DeviceDoc() {
+	}
+
+	// TODO: Think about hinding TImestamp and GeoPoint dependencies
+	public DeviceDoc(String id, String deviceId, String number, Timestamp publishTime, String status, GeoPoint location,
+			String addressName, String street, String houseNumber, String city, String postalCode, String country) {
 		super();
 		this.id = id;
+		this.deviceId = deviceId;
 		this.number = number;
 		this.publishTime = publishTime;
 		this.status = status;
-		this.longitude = longitude;
-		this.latitude = latitude;
+		this.location = location;
 		this.addressName = addressName;
 		this.street = street;
 		this.houseNumber = houseNumber;
@@ -45,22 +60,30 @@ public class DeviceDoc {
 	public void setId(String id) {
 		this.id = id;
 	}
+	
+	public String getDeviceId() {
+		return deviceId;
+	}
+	
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
+	}
 
-	//@PropertyName("number")
+	// @PropertyName("number")
 	public String getNumber() {
 		return number;
 	}
 
-	//@PropertyName("number")
+	// @PropertyName("number")
 	public void setNumber(String number) {
 		this.number = number;
 	}
 
-	public String getPublishTime() {
+	public Timestamp getPublishTime() {
 		return publishTime;
 	}
 
-	public void setPublishTime(String publishTime) {
+	public void setPublishTime(Timestamp publishTime) {
 		this.publishTime = publishTime;
 	}
 
@@ -72,20 +95,12 @@ public class DeviceDoc {
 		this.status = status;
 	}
 
-	public String getLongitude() {
-		return longitude;
+	public GeoPoint getLocation() {
+		return location;
 	}
 
-	public void setLongitude(String longitude) {
-		this.longitude = longitude;
-	}
-
-	public String getLatitude() {
-		return latitude;
-	}
-
-	public void setLatitude(String latitude) {
-		this.latitude = latitude;
+	public void setLocation(GeoPoint location) {
+		this.location = location;
 	}
 
 	public String getAddressName() {
@@ -135,5 +150,5 @@ public class DeviceDoc {
 	public void setCountry(String country) {
 		this.country = country;
 	}
-	
+
 }

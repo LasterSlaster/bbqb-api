@@ -69,8 +69,9 @@ public class ApiController {
      */
     @GetMapping("/devices/{id}")
     public Mono<ResponseEntity<Device>> getDevice(@PathVariable("id") String deviceId) {
+        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         return deviceService.readDevice(deviceId).map((Device device) -> {
-            URI uri = ServletUriComponentsBuilder.fromCurrentRequest().build().toUri();
+            URI uri = builder.build().toUri();
             return ResponseEntity.created(uri).body(device);
         }).defaultIfEmpty(ResponseEntity.notFound().build());
     }
@@ -83,9 +84,10 @@ public class ApiController {
      */
     @PostMapping("/devices")
     public Mono<ResponseEntity<Device>> postDevices(@RequestBody Device device) {
+        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         // TODO: Validate device object
         return deviceService.createDevice(device).map((Device savedDevice) -> {
-            URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedDevice.getId()).toUri();
+            URI uri = builder.path("/{id}").buildAndExpand(savedDevice.getId()).toUri();
             return ResponseEntity.created(uri).body(savedDevice);
         });
     }
@@ -93,16 +95,17 @@ public class ApiController {
     /**
      * Update the information of a device.
      *
-     * @param id:     The ID of the device to be updated. Must be identical to the id field in the device object in the request body
+     * @param id:     The ID of the device to be updated. Must be identical to the id field in the device object in the request body.
      * @param device: The device object which will be used to update the device.
      * @return The updated device.
      */
     @PutMapping("/devices/{id}")
     public Mono<ResponseEntity<Device>> putDevices(@PathVariable("id") String id, @RequestBody Device device) {
+        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         // TODO: Validate device object more
         if (device.getId() != null && device.getId().equals(id)) {
             return deviceService.updateDevice(device).map((Device updatedDevice) -> {
-                URI uri = ServletUriComponentsBuilder.fromCurrentRequest().build().toUri();
+                URI uri = builder.build().toUri();
                 return ResponseEntity.created(uri).body(updatedDevice);
             });
         } else {

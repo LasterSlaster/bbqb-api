@@ -25,6 +25,8 @@ public class FirestoreDeviceServiceTest {
 
 	private final String deviceId = "deviceId";
 
+	private final String name = "name";
+
 	private final String number = "deviceId";
 
 	private final Long publishTime = new Date().getTime();
@@ -46,7 +48,7 @@ public class FirestoreDeviceServiceTest {
 	@Test
 	public void testCreateDevice() {
 		// given
-		Device device = new Device(id, deviceId, number, publishTime, status, location, address);
+		Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
 		
 		// when
 		//Mono<Device> savedDevice = this.sut.createDevice(device);
@@ -59,7 +61,7 @@ public class FirestoreDeviceServiceTest {
 	@Test
 	public void testUpdateDevice() {
 		// given
-		Device device = new Device(id, deviceId, number, publishTime, status, location, address);
+		Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
 		
 		// when
 		Mono<Device> updatedDevice = this.sut.updateDevice(device);
@@ -94,7 +96,7 @@ public class FirestoreDeviceServiceTest {
 	@Test
 	public void testOpenDevice() {
 		// given
-		Device device = new Device(id, deviceId, number, publishTime, status, location, address);
+		Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
 		
 		// when
 		this.sut.openDevice(device);
@@ -105,7 +107,7 @@ public class FirestoreDeviceServiceTest {
 	@Test
 	public void testLockDevice() {
 		// given
-		Device device = new Device(id, deviceId, number, publishTime, status, location, address);
+		Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
 		
 		// when
 		this.sut.lockDevice(device);

@@ -11,32 +11,29 @@ import org.springframework.stereotype.Component;
 
 /**
  * Configure Webserver Port by reading port information from properties file otherwise use default port 8080.
- * 
- * @author Marius Degen
  *
+ * @author Marius Degen
  */
 @Component
 public class ServerPortCustomizer implements WebServerFactoryCustomizer<ConfigurableWebServerFactory> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerPortCustomizer.class);
     @Autowired
-    private Environment env;		  
-    
+    private Environment env;
     @Value("bbq.backend.webserver.port-env-variable")
     private String WebserverPortEnvVariable;
-    
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServerPortCustomizer.class);
 
-	@Override
+    @Override
     public void customize(ConfigurableWebServerFactory factory) {
-		String portValue = env.getProperty(WebserverPortEnvVariable);
-		int port = 8080;
-		try {
-			port = Integer.parseInt(portValue);
-			LOGGER.info("Configure webserver port with port number " + String.valueOf(port) + " specified by environment variable " + WebserverPortEnvVariable);
-		} catch (NumberFormatException e) {
-			LOGGER.info("Unable to resolve a valid port number from environment variable " + WebserverPortEnvVariable + ". Fallback to default port 8080.");
-		}
-		
+        String portValue = env.getProperty(WebserverPortEnvVariable);
+        int port = 8080;
+        try {
+            port = Integer.parseInt(portValue);
+            LOGGER.info("Configure webserver port with port number " + String.valueOf(port) + " specified by environment variable " + WebserverPortEnvVariable);
+        } catch (NumberFormatException e) {
+            LOGGER.info("Unable to resolve a valid port number from environment variable " + WebserverPortEnvVariable + ". Fallback to default port 8080.");
+        }
+
         factory.setPort(port);
     }
 }

@@ -1,117 +1,105 @@
 package de.bbq.backend.gcp.firestore;
 
-import java.util.Date;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import com.google.api.client.util.DateTime;
-
 import de.bbqb.backend.api.model.entity.Address;
 import de.bbqb.backend.api.model.entity.Device;
 import de.bbqb.backend.api.model.entity.Location;
 import de.bbqb.backend.gcp.firestore.DeviceRepo;
 import de.bbqb.backend.gcp.firestore.FirestoreDeviceService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Date;
+
 public class FirestoreDeviceServiceTest {
 
-	private FirestoreDeviceService sut;
-	
-	private DeviceRepo deviceRepoMock;
+    private final String id = "deviceId";
+    private final String deviceId = "deviceId";
+    private final String name = "name";
+    private final String number = "deviceId";
+    private final Long publishTime = new Date().getTime();
+    private final String status = "deviceId";
+    private final Address address = new Address("Deutschland", "78467", "Konstanz", "Straße", "2", "Adressname");
+    private final Location location = new Location(1.1, 1.2);
+    private FirestoreDeviceService sut;
+    private DeviceRepo deviceRepoMock;
 
-	private final String id = "deviceId";
+    @BeforeEach
+    public void setUp() {
+        this.deviceRepoMock = new DeviceRepoMock();
 
-	private final String deviceId = "deviceId";
+        // TODO: Create Firestore mock
+        this.sut = new FirestoreDeviceService(deviceRepoMock, null);
+    }
 
-	private final String name = "name";
+    @Test
+    public void testCreateDevice() {
+        // given
+        Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
 
-	private final String number = "deviceId";
+        // when
+        //Mono<Device> savedDevice = this.sut.createDevice(device);
 
-	private final Long publishTime = new Date().getTime();
+        // then
+        //Device actualSavedDevice = savedDevice.block();
+        //actualSavedDevice.equals(device);
+    }
 
-	private final String status = "deviceId";
+    @Test
+    public void testUpdateDevice() {
+        // given
+        Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
 
-	private final Address address = new Address("Deutschland", "78467", "Konstanz", "Straße", "2", "Adressname");
+        // when
+        Mono<Device> updatedDevice = this.sut.updateDevice(device);
 
-	private final Location location = new Location(1.1, 1.2);
-	
-	@BeforeEach
-	public void setUp() {
-		this.deviceRepoMock = new DeviceRepoMock(); 
+        // then
+        Device actualUpdatedDevice = updatedDevice.block();
+        actualUpdatedDevice.equals(device);
+    }
 
-		// TODO: Create Firestore mock
-		this.sut = new FirestoreDeviceService(deviceRepoMock, null);
-	}
+    //@Test
+    public void testReadDevice() {
+        // given
+        String deviceId = "Butler-2";
 
-	@Test
-	public void testCreateDevice() {
-		// given
-		Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
-		
-		// when
-		//Mono<Device> savedDevice = this.sut.createDevice(device);
+        // when
+        Mono<Device> readDevice = this.sut.readDevice(deviceId);
 
-		// then
-		//Device actualSavedDevice = savedDevice.block();
-		//actualSavedDevice.equals(device);
-	}
+        // then
+        Device actualReadDevice = readDevice.block();
+    }
 
-	@Test
-	public void testUpdateDevice() {
-		// given
-		Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
-		
-		// when
-		Mono<Device> updatedDevice = this.sut.updateDevice(device);
+    @Test
+    public void testReadAllDevice() {
+        // given
 
-		// then
-		Device actualUpdatedDevice = updatedDevice.block();
-		actualUpdatedDevice.equals(device);
-	}
+        // when
+        Flux<Device> allDevices = this.sut.readAllDevices();
 
-	//@Test
-	public void testReadDevice() {
-		// given
-		String deviceId = "Butler-2";
+        // then
+    }
 
-		// when
-		Mono<Device> readDevice = this.sut.readDevice(deviceId);
+    @Test
+    public void testOpenDevice() {
+        // given
+        Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
 
-		// then
-		Device actualReadDevice = readDevice.block();
-	}
+        // when
+        this.sut.openDevice(device);
 
-	@Test
-	public void testReadAllDevice() {
-		// given
-		
-		// when
-		Flux<Device> allDevices = this.sut.readAllDevices();
+        // then
+    }
 
-		// then
-	}
+    @Test
+    public void testLockDevice() {
+        // given
+        Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
 
-	@Test
-	public void testOpenDevice() {
-		// given
-		Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
-		
-		// when
-		this.sut.openDevice(device);
+        // when
+        this.sut.lockDevice(device);
 
-		// then
-	}
-
-	@Test
-	public void testLockDevice() {
-		// given
-		Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
-		
-		// when
-		this.sut.lockDevice(device);
-
-		// then
-	}
+        // then
+    }
 }

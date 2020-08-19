@@ -7,17 +7,17 @@ import lombok.Getter;
 
 /**
  * BBQ-Butler business object to hold address information
- * 
+ *
  * @author Marius Degen
  */
 @Getter
 @AllArgsConstructor
 public class Address {
 
-	private String country;
-	private String postalcode;
-	private String city;
-	private String street;
-	private String houseNumber;
-	private String name;
+    private String country;
+    private String postalcode;
+    private String city;
+    private String street;
+    private String houseNumber;
+    private String name;
 }

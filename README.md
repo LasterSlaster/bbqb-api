@@ -10,10 +10,10 @@ Die App realisiert einen REST-Service als API für CRUD-Operationen zur Kommunik
 
 ## Endpoints
 - GET /: Test endpoint to check if service is available
-- GET /devices: Retrieve all devices docs
-- GET /devices/{id}: Get a device doc by its id
-- POST /devices: Create a new device doc. Expects a JSON Body with a device object
-- PUT /devices/{id}: Update an existing device doc or if no device doc with the specified id exists create a new one at that location. Excpects a JSON body with a the device object to update/create. Path id and body id have to be the same!
+- GET /devices: Retrieve all devices 
+- GET /devices/{id}: Get a device by its id
+- POST /devices: Create a new device. Expects a JSON Body with a device object
+- PUT /devices/{id}: Update an existing device or if no device with the specified id exists create a new one at that location. Excpects a JSON body with the device object to update/create. URL-Path id and request body id have to be the same!
 - POST /message: Send an open signal to a device to unlock it. Body must include a device object with value id.
 
 ### Device Object

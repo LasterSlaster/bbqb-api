@@ -93,7 +93,7 @@ public class ApiController {
     /**
      * Update the information of a device.
      *
-     * @param id:     The ID of the device to be updated.
+     * @param id:     The ID of the device to be updated. Must be identical to the id field in the device object in the request body
      * @param device: The device object which will be used to update the device.
      * @return The updated device.
      */

@@ -196,7 +196,7 @@ public class FirestoreDeviceService implements DeviceService {
         Address address = new Address(deviceDoc.getCountry(), deviceDoc.getPostalCode(), deviceDoc.getCity(),
                 deviceDoc.getStreet(), deviceDoc.getHouseNumber(), deviceDoc.getAddressName());
         return new Device(deviceDoc.getId(), deviceDoc.getDeviceId(), deviceDoc.getName(), deviceDoc.getNumber(),
-                convertToMilliseconds(deviceDoc.getPublishTime().getSeconds(), Long.valueOf(deviceDoc.getPublishTime().getNanos())),
+                convertToMilliseconds(deviceDoc.getPublishTime().getSeconds(), (long) deviceDoc.getPublishTime().getNanos()),
                 deviceDoc.getStatus(), location, address);
     }
 

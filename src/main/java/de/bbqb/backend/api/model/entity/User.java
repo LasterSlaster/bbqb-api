@@ -12,11 +12,11 @@ import lombok.Getter;
 @AllArgsConstructor
 public class User {
 
-    private Long id;
-    private String firstName;
-    private String lastName;
-    private String stripeId;
-    // private String email;
-    // private Group group;
-    // private Role role;
+    private final Long id;
+    private final String firstName;
+    private final String lastName;
+    private final String stripeId;
+    // private final String email;
+    // private final Group group;
+    // private final Role role;
 }

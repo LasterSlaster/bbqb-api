@@ -12,6 +12,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class Location {
 
-    private Double latitude;
-    private Double longitude;
+    private final Double latitude;
+    private final Double longitude;
 }

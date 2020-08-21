@@ -1,5 +1,6 @@
 package de.bbq.backend.gcp.firestore;
 
+import com.google.cloud.firestore.Firestore;
 import de.bbqb.backend.api.model.entity.Address;
 import de.bbqb.backend.api.model.entity.Device;
 import de.bbqb.backend.api.model.entity.Location;
@@ -7,6 +8,7 @@ import de.bbqb.backend.gcp.firestore.DeviceRepo;
 import de.bbqb.backend.gcp.firestore.FirestoreDeviceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -23,14 +25,14 @@ public class FirestoreDeviceServiceTest {
     private final Address address = new Address("Deutschland", "78467", "Konstanz", "Straße", "2", "Adressname");
     private final Location location = new Location(1.1, 1.2);
     private FirestoreDeviceService sut;
+    @Mock
     private DeviceRepo deviceRepoMock;
+    @Mock
+    private Firestore firestoreMock;
 
     @BeforeEach
     public void setUp() {
-        this.deviceRepoMock = new DeviceRepoMock();
-
-        // TODO: Create Firestore mock
-        this.sut = new FirestoreDeviceService(deviceRepoMock, null);
+        this.sut = new FirestoreDeviceService(deviceRepoMock, firestoreMock);
     }
 
     @Test

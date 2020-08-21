@@ -17,7 +17,6 @@
 	<description>BBQ Butler API</description>
 
 	<properties>
-		<java.version>13</java.version>
 		<google.cloud.version>1.2.3.RELEASE</google.cloud.version>
 	</properties>
 	

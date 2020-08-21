@@ -1,21 +1,14 @@
 package de.bbqb.backend.api.controller;
 
-import java.net.URI;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
 import de.bbqb.backend.api.model.entity.Device;
 import de.bbqb.backend.api.model.service.DeviceService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.net.URI;
 
 /**
  * REST Controller with endpoints to manage device resources like
@@ -76,8 +69,9 @@ public class ApiController {
      */
     @GetMapping("/devices/{id}")
     public Mono<ResponseEntity<Device>> getDevice(@PathVariable("id") String deviceId) {
+        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         return deviceService.readDevice(deviceId).map((Device device) -> {
-            URI uri = ServletUriComponentsBuilder.fromCurrentRequest().build().toUri();
+            URI uri = builder.build().toUri();
             return ResponseEntity.created(uri).body(device);
         }).defaultIfEmpty(ResponseEntity.notFound().build());
     }
@@ -90,9 +84,10 @@ public class ApiController {
      */
     @PostMapping("/devices")
     public Mono<ResponseEntity<Device>> postDevices(@RequestBody Device device) {
+        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         // TODO: Validate device object
         return deviceService.createDevice(device).map((Device savedDevice) -> {
-            URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedDevice.getId()).toUri();
+            URI uri = builder.path("/{id}").buildAndExpand(savedDevice.getId()).toUri();
             return ResponseEntity.created(uri).body(savedDevice);
         });
     }
@@ -100,16 +95,17 @@ public class ApiController {
     /**
      * Update the information of a device.
      *
-     * @param id:     The ID of the device to be updated.
+     * @param id:     The ID of the device to be updated. Must be identical to the id field in the device object in the request body.
      * @param device: The device object which will be used to update the device.
      * @return The updated device.
      */
     @PutMapping("/devices/{id}")
     public Mono<ResponseEntity<Device>> putDevices(@PathVariable("id") String id, @RequestBody Device device) {
+        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         // TODO: Validate device object more
         if (device.getId() != null && device.getId().equals(id)) {
             return deviceService.updateDevice(device).map((Device updatedDevice) -> {
-                URI uri = ServletUriComponentsBuilder.fromCurrentRequest().build().toUri();
+                URI uri = builder.build().toUri();
                 return ResponseEntity.created(uri).body(updatedDevice);
             });
         } else {

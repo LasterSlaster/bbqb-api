@@ -116,11 +116,12 @@ public class FirestoreDeviceService implements DeviceService {
         // Auto-generate an unique id for the new firestore device document
         // This makes sure that a new document is created and no existing one is overridden
         String id = firestore.collection("devices").document().getId();
-        Device deviceWithId = new Device(id, device);
+        DeviceDoc deviceDoc = new DeviceDoc();
+        deviceDoc.setId(id);
+        deviceDoc.setStatus("idle");
+        deviceDoc.setPublishTime(Timestamp.now());
 
-        return deviceRepo.save(mapToDeviceDoc(deviceWithId)).map((DeviceDoc deviceDoc) -> {
-            return mapFromDeviceDoc(deviceDoc);
-        });
+        return deviceRepo.save(mapDeviceToDeviceDoc(device, deviceDoc)).map(this::mapFromDeviceDoc);
     }
 
     /**
@@ -133,10 +134,11 @@ public class FirestoreDeviceService implements DeviceService {
      */
     @Override
     public Mono<Device> updateDevice(Device device) {
-        // TODO: First try to read the device from the db and then only update valid parts if present(Transaction)
-        return deviceRepo.save(mapToDeviceDoc(device)).map((DeviceDoc deviceDoc) -> {
-            return mapFromDeviceDoc(deviceDoc);
-        });
+        // TODO: Wrap read, update, save into a transaction
+        return deviceRepo.findFirstByDeviceId(device.getDeviceId())
+                .map(deviceDoc -> this.mapDeviceToDeviceDoc(device, deviceDoc))
+                .flatMap(deviceRepo::save)
+                .map(this::mapFromDeviceDoc);
     }
 
     /**
@@ -148,9 +150,7 @@ public class FirestoreDeviceService implements DeviceService {
      */
     @Override
     public Mono<Device> readDevice(String deviceId) {
-        return deviceRepo.findById(deviceId).map((DeviceDoc deviceDoc) -> {
-            return mapFromDeviceDoc(deviceDoc);
-        });
+        return deviceRepo.findById(deviceId).map(this::mapFromDeviceDoc);
     }
 
     /**
@@ -160,9 +160,7 @@ public class FirestoreDeviceService implements DeviceService {
      */
     @Override
     public Flux<Device> readAllDevices() {
-        return deviceRepo.findAll().map((DeviceDoc deviceDoc) -> {
-            return mapFromDeviceDoc(deviceDoc);
-        });
+        return deviceRepo.findAll().map(this::mapFromDeviceDoc);
     }
 
     /**
@@ -184,6 +182,20 @@ public class FirestoreDeviceService implements DeviceService {
         return deviceDoc;
     }
 
+    private DeviceDoc mapDeviceToDeviceDoc(Device device, DeviceDoc deviceDoc) {
+        deviceDoc.setDeviceId(device.getDeviceId());
+        deviceDoc.setName(device.getName());
+        deviceDoc.setNumber(device.getNumber());
+        deviceDoc.setAddressName(device.getAddress().getName());
+        deviceDoc.setCountry(device.getAddress().getCountry());
+        deviceDoc.setCity(device.getAddress().getCity());
+        deviceDoc.setPostalCode(device.getAddress().getPostalcode());
+        deviceDoc.setStreet(device.getAddress().getStreet());
+        deviceDoc.setHouseNumber(device.getAddress().getHouseNumber());
+        deviceDoc.setLocation(new GeoPoint(device.getLocation().getLatitude(), device.getLocation().getLongitude()));
+        return deviceDoc;
+    }
+
     /**
      * Map a DeviceDoc object to a Device object.
      *
@@ -196,7 +208,7 @@ public class FirestoreDeviceService implements DeviceService {
         Address address = new Address(deviceDoc.getCountry(), deviceDoc.getPostalCode(), deviceDoc.getCity(),
                 deviceDoc.getStreet(), deviceDoc.getHouseNumber(), deviceDoc.getAddressName());
         return new Device(deviceDoc.getId(), deviceDoc.getDeviceId(), deviceDoc.getName(), deviceDoc.getNumber(),
-                convertToMilliseconds(deviceDoc.getPublishTime().getSeconds(), Long.valueOf(deviceDoc.getPublishTime().getNanos())),
+                convertToMilliseconds(deviceDoc.getPublishTime().getSeconds(), (long) deviceDoc.getPublishTime().getNanos()),
                 deviceDoc.getStatus(), location, address);
     }
 

@@ -38,7 +38,7 @@ build:
   image: google/cloud-sdk
   before_script:
     - echo ${SERVICE_ACCOUNT} > /tmp/keyfile.json
-    - gcloud auth activate-service-account --key-file ${GOOGLE_APPLICATION_CREDENTIALS}
+    - gcloud auth activate-service-account --key-file /tmp/keyfile.json
 
 deploy:prd:
   <<: *google_cloud_auth

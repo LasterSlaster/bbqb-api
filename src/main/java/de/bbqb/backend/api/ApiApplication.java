@@ -6,21 +6,20 @@ import org.springframework.cloud.gcp.data.firestore.repository.config.EnableReac
 
 /**
  * Configure and start the application
- * 
- * @author Marius Degen
  *
+ * @author Marius Degen
  */
-@SpringBootApplication(scanBasePackages = { "de.bbqb" })
+@SpringBootApplication(scanBasePackages = {"de.bbqb"})
 @EnableReactiveFirestoreRepositories("de.bbqb.backend.gcp.firestore")
 public class ApiApplication {
 
-	/**
-	 * Start the application as a Spring application and pass cmd arguments
-	 * 
-	 * @param args Arguments passed to the application on startup
-	 */
-	public static void main(String[] args) {
-		SpringApplication.run(ApiApplication.class, args);
-	}
+    /**
+     * Start the application as a Spring application and pass cmd arguments
+     *
+     * @param args Arguments passed to the application on startup
+     */
+    public static void main(String[] args) {
+        SpringApplication.run(ApiApplication.class, args);
+    }
 
 }

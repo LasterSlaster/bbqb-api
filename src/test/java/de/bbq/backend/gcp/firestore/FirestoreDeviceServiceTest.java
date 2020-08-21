@@ -7,6 +7,7 @@ import de.bbqb.backend.api.model.entity.Location;
 import de.bbqb.backend.gcp.firestore.DeviceRepo;
 import de.bbqb.backend.gcp.firestore.FirestoreDeviceService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import reactor.core.publisher.Flux;
@@ -14,6 +15,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Date;
 
+@Disabled
 public class FirestoreDeviceServiceTest {
 
     private final String id = "deviceId";

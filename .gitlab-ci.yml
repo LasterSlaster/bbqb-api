@@ -23,7 +23,7 @@ test:
   stage: test
   image: java:8
   before_script:
-    - echo ${SERVICE_ACCOUNT} > ${GOOGLE_APPLICATION_CREDENTIALS}
+    - echo ${SERVICE_ACCOUNT} > /tmp/keyfile.json
   script: ./mvnw $MAVEN_CLI_OPTS test
 
 build:
@@ -37,7 +37,7 @@ build:
 .google_cloud_auth: &google_cloud_auth
   image: google/cloud-sdk
   before_script:
-    - echo ${SERVICE_ACCOUNT} > ${GOOGLE_APPLICATION_CREDENTIALS}
+    - echo ${SERVICE_ACCOUNT} > /tmp/keyfile.json
     - gcloud auth activate-service-account --key-file ${GOOGLE_APPLICATION_CREDENTIALS}
 
 deploy:prd:

@@ -21,14 +21,14 @@ before_script:
   
 test:
   stage: test
-  image: java:8
+  image: openjdk:13
   before_script:
     - echo ${SERVICE_ACCOUNT} > /tmp/keyfile.json
   script: ./mvnw $MAVEN_CLI_OPTS test
 
 build:
   stage: build
-  image: java:8
+  image: openjdk:13
   script: ./mvnw $MAVEN_CLI_OPTS package appengine:stage -DskipTests
   artifacts:
     paths:

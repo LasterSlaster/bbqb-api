@@ -2,7 +2,10 @@ package de.bbqb.backend.api.controller;
 
 import de.bbqb.backend.api.model.entity.Device;
 import de.bbqb.backend.api.model.service.DeviceService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import reactor.core.publisher.Flux;
@@ -34,7 +37,7 @@ public class ApiController {
      * @return hello world string
      */
     @GetMapping("/")
-    public String hello() {
+    public String hello(@AuthenticationPrincipal OAuth2User oauth2User) {
         return "Hello World";
     }
 
@@ -46,9 +49,11 @@ public class ApiController {
      */
     @PostMapping("/message")
     public ResponseEntity<Device> postMessage(@RequestBody Device device) {
-        deviceService.openDevice(device);
-
-        return ResponseEntity.accepted().build();
+        if (device.getDeviceId() != null && deviceService.openDevice(device.getDeviceId())) { //TODO: research processing sideeffects(IO) in if-statement evaluation
+            return ResponseEntity.accepted().build();
+        } else {
+            return ResponseEntity.unprocessableEntity().build();
+        }
     }
 
     /**
@@ -102,15 +107,24 @@ public class ApiController {
     @PutMapping("/devices/{id}")
     public Mono<ResponseEntity<Device>> putDevices(@PathVariable("id") String id, @RequestBody Device device) {
         ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
-        // TODO: Validate device object more
         if (device.getId() != null && device.getId().equals(id)) {
-            return deviceService.updateDevice(device).map((Device updatedDevice) -> {
-                URI uri = builder.build().toUri();
-                return ResponseEntity.created(uri).body(updatedDevice);
-            });
+            return deviceService.updateDevice(device)
+                    .flatMap(updatedDevice -> this.sendOpenDeviceSignal(device, updatedDevice))
+                    .map(updatedDevice -> ResponseEntity.created(builder.build().toUri()).body(updatedDevice)) // TODO: Think about returning 200/204 instead
+                    .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
         } else {
-            // TODO: Create message "id is missing" or "not equal to deviceId"
-            return Mono.just(ResponseEntity.unprocessableEntity().build());
+            return Mono.just(ResponseEntity.unprocessableEntity().build()); // TODO: Create message "id is missing" or "not equal to deviceId"
         }
+    }
+
+    private Mono<Device> sendOpenDeviceSignal(Device device, Device updatedDevice) {
+        if (device.getLockStatus() == "open" && openDevice(device)) {
+                return Mono.error(new Exception()); // TODO: Refactor this one
+        }
+        return Mono.just(updatedDevice);
+    }
+
+    private Boolean openDevice(Device device) {
+        return device.getDeviceId() != null && deviceService.openDevice(device.getDeviceId());
     }
 }

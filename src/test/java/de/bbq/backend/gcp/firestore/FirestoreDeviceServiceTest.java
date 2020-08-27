@@ -88,10 +88,9 @@ public class FirestoreDeviceServiceTest {
     @Test
     public void testOpenDevice() {
         // given
-        Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
 
         // when
-        this.sut.openDevice(device);
+        this.sut.openDevice(deviceId);
 
         // then
     }

@@ -19,8 +19,8 @@ public interface DeviceService {
 
     public Flux<Device> readAllDevices();
 
-    public void openDevice(Device device); // TODO: Add return type
+    public Boolean openDevice(String deviceId);
 
-    public void lockDevice(Device device);
+    public Boolean lockDevice(Device device);
 
 }

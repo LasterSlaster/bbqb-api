@@ -31,7 +31,7 @@ public class DeviceDoc {
     private String name;
     private String number;
     private Timestamp publishTime;
-    private String status;
+    private String lockStatus;
     private GeoPoint location;
     private String addressName;
     private String street;
@@ -39,4 +39,7 @@ public class DeviceDoc {
     private String city;
     private String postalCode;
     private String country;
+    private Double wifiSignal;
+    private Double temperature;
+    private String drawerStatus;
 }

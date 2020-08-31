@@ -18,12 +18,15 @@ import java.util.Date;
 @Disabled
 public class FirestoreDeviceServiceTest {
 
-    private final String id = "deviceId";
+    private final String id = "id";
     private final String deviceId = "deviceId";
     private final String name = "name";
-    private final String number = "deviceId";
+    private final String number = "123";
     private final Long publishTime = new Date().getTime();
-    private final String status = "deviceId";
+    private final String lockStatus = "locked";
+    private final String drawerStatus = "closed";
+    private final Double wifiSignal = 89.0;
+    private final Double temperature = 30.0;
     private final Address address = new Address("Deutschland", "78467", "Konstanz", "Straße", "2", "Adressname");
     private final Location location = new Location(1.1, 1.2);
     private FirestoreDeviceService sut;
@@ -40,7 +43,7 @@ public class FirestoreDeviceServiceTest {
     @Test
     public void testCreateDevice() {
         // given
-        Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
+        Device device = new Device(id, deviceId, name, number, publishTime, lockStatus, location, address, drawerStatus, wifiSignal, temperature);
 
         // when
         //Mono<Device> savedDevice = this.sut.createDevice(device);
@@ -53,7 +56,7 @@ public class FirestoreDeviceServiceTest {
     @Test
     public void testUpdateDevice() {
         // given
-        Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
+        Device device = new Device(id, deviceId, name, number, publishTime, lockStatus, location, address, drawerStatus, wifiSignal, temperature);
 
         // when
         Mono<Device> updatedDevice = this.sut.updateDevice(device);
@@ -98,7 +101,7 @@ public class FirestoreDeviceServiceTest {
     @Test
     public void testLockDevice() {
         // given
-        Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
+        Device device = new Device(id, deviceId, name, number, publishTime, lockStatus, location, address, drawerStatus, wifiSignal, temperature);
 
         // when
         this.sut.lockDevice(device);

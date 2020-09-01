@@ -118,7 +118,7 @@ public class ApiController {
     }
 
     private Mono<Device> sendOpenDeviceSignal(Device device, Device updatedDevice) {
-        if (device.getLockStatus() == "open" && openDevice(device)) {
+        if (device.getLocked() == false && openDevice(device)) {
                 return Mono.error(new Exception()); // TODO: Refactor this one
         }
         return Mono.just(updatedDevice);

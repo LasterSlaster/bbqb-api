@@ -131,8 +131,9 @@ public class FirestoreDeviceService implements DeviceService {
         String id = firestore.collection("devices").document().getId();
         DeviceDoc deviceDoc = new DeviceDoc();
         deviceDoc.setId(id);
-        deviceDoc.setLockStatus("idle");
+        deviceDoc.setLocked(true);
         deviceDoc.setPublishTime(Timestamp.now());
+        // TODO: Set lockSTatus, drawerStatus, timestamp, temp, wifi defaults???
         return deviceRepo.save(mapToDeviceDoc(device, deviceDoc)).map(this::mapFromDeviceDoc);
     }
 
@@ -187,9 +188,6 @@ public class FirestoreDeviceService implements DeviceService {
         if (device.getDeviceId() != null) {
             deviceDoc.setDeviceId(device.getDeviceId());
         }
-        if (device.getName() != null) {
-            deviceDoc.setName(device.getName());
-        }
         if (device.getNumber() != null) {
             deviceDoc.setNumber(device.getNumber());
         }
@@ -230,9 +228,9 @@ public class FirestoreDeviceService implements DeviceService {
                 deviceDoc.getLocation().getLongitude());
         Address address = new Address(deviceDoc.getCountry(), deviceDoc.getPostalCode(), deviceDoc.getCity(),
                 deviceDoc.getStreet(), deviceDoc.getHouseNumber(), deviceDoc.getAddressName());
-        return new Device(deviceDoc.getId(), deviceDoc.getDeviceId(), deviceDoc.getName(), deviceDoc.getNumber(),
+        return new Device(deviceDoc.getId(), deviceDoc.getDeviceId(), deviceDoc.getNumber(),
                 convertToMilliseconds(deviceDoc.getPublishTime().getSeconds(), (long) deviceDoc.getPublishTime().getNanos()),
-                deviceDoc.getLockStatus(), location, address, deviceDoc.getDrawerStatus(), deviceDoc.getWifiSignal(), deviceDoc.getTemperature());
+                deviceDoc.getLocked(), deviceDoc.getClosed(), deviceDoc.getWifiSignal(), deviceDoc.getTemperaturePlate1(), deviceDoc.getTemperaturePlate2(), location, address);
     }
 
     /**

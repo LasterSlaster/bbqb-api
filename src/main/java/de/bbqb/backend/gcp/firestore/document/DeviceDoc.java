@@ -28,10 +28,13 @@ public class DeviceDoc {
     @DocumentId
     private String id;
     private String deviceId;
-    private String name;
     private String number;
     private Timestamp publishTime;
-    private String lockStatus;
+    private Boolean locked;
+    private Boolean closed;
+    private Double wifiSignal;
+    private Double temperaturePlate1;
+    private Double temperaturePlate2;
     private GeoPoint location;
     private String addressName;
     private String street;
@@ -39,7 +42,4 @@ public class DeviceDoc {
     private String city;
     private String postalCode;
     private String country;
-    private Double wifiSignal;
-    private Double temperature;
-    private String drawerStatus;
 }

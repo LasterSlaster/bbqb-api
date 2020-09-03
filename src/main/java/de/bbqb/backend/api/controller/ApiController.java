@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.retry.Repeat;
@@ -124,17 +125,25 @@ public class ApiController {
     private Mono<Device> checkToOpenDevice(Device device, Device updatedDevice) {
         // TODO: Think about moving this into deviceService
         if (device.getLocked() != null && device.getLocked() == false) {
-            if (openDevice(device)) {
+            //if (openDevice(device)) {
                 return deviceService.readDevice(device.getId())
                         .switchIfEmpty(Mono.error(new Exception())) // TODO: Implement better exception
                         // Repeatedly fetch the device the signal was send to until it is unlocked. 5 times with 1 second delays
                         .filter(pendingDevice -> pendingDevice.getLocked() == false)
-                        .repeatWhenEmpty(Repeat.times(5).fixedBackoff(Duration.ofSeconds(1)))
+                        //.repeatWhenEmpty(Repeat.times(5).fixedBackoff(Duration.ofSeconds(1)))
+                        .repeatWhenEmpty(comp -> comp.zipWith(Flux.range(1,5), (a,b) -> {
+                            if (b < 4) {
+                                return b;
+                            } else {
+                                throw Exceptions.propagate(new Exception());
+                            }
+                        }).delayElements(Duration.ofSeconds(1L)))
+
                         // TODO: Return error if device has not been unlocked after retries
                         ;
-            } else {
-                return Mono.error(new Exception()); // TODO: Implement better exception
-            }
+            //} else {
+            //    return Mono.error(new Exception()); // TODO: Implement better exception
+            //}
         } else {
             // Continue with updatedDevice if it doesn't have to be unlocked
             return Mono.just(updatedDevice);

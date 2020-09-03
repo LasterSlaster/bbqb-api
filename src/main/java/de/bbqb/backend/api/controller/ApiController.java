@@ -130,7 +130,7 @@ public class ApiController {
                         .switchIfEmpty(Mono.error(new Exception())) // TODO: Implement better exception
                         // Repeatedly fetch the device the signal was send to until it is unlocked. 5 times with 1 second delays
                         .filter(pendingDevice -> pendingDevice.getLocked() == false)
-                        .repeatWhenEmpty(Repeat.times(5).fixedBackoff(Duration.ofSeconds(1)))
+                        .repeatWhenEmpty(Repeat.times(10).fixedBackoff(Duration.ofSeconds(1)))
                         //.repeatWhenEmpty(comp -> comp.zipWith(Flux.range(1,5), (a,b) -> {
                         //    if (b < 4) {
                         //        return b;

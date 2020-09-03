@@ -15,6 +15,9 @@ import reactor.core.publisher.Mono;
 
 import java.util.Date;
 
+/**
+ * @author Marius Degen
+ */
 @Disabled
 public class FirestoreDeviceServiceTest {
 

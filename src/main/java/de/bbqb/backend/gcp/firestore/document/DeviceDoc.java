@@ -16,7 +16,7 @@ import org.springframework.cloud.gcp.data.firestore.Document;
  * Device bean to represent a device document from a gcp firestore database.
  * This class is used for Jackson un-/marshaling
  *
- * @author laster
+ * @author Marius Degen
  */
 @Getter
 @Setter

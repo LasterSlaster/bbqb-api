@@ -28,6 +28,8 @@ build:
 test:
   stage: test
   image: openjdk:13
+  before_script:
+    - echo ${SERVICE_ACCOUNT} > /tmp/keyfile.json
   script: ./mvnw $MAVEN_CLI_OPTS test
 
 stage:

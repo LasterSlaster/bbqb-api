@@ -91,4 +91,3 @@ Nach der Installation kann der Emulator mit dem Kommando "gcloud beta emulators 
 
 ### Developer
 - Marius Degen
-- Dimitri Kreik

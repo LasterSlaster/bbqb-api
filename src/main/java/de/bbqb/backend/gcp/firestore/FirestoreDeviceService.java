@@ -148,7 +148,7 @@ public class FirestoreDeviceService implements DeviceService {
     @Override
     public Mono<Device> updateDevice(Device device) {
         // TODO: Wrap read, update, save into a transaction
-        return deviceRepo.findFirstByDeviceId(device.getDeviceId())
+        return deviceRepo.findById(device.getId())
                 .map(deviceDoc -> this.mapToDeviceDoc(device, deviceDoc))
                 .flatMap(deviceRepo::save)
                 .map(this::mapFromDeviceDoc);

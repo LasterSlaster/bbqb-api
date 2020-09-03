@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.retry.Repeat;
 
 import java.net.URI;
+import java.time.Duration;
 
 /**
  * REST Controller with endpoints to manage device resources like
@@ -99,6 +101,7 @@ public class ApiController {
 
     /**
      * Update the information of a device.
+     * TODO: Currently not idempotent! Because it does not use the id from the request but creates a new one
      *
      * @param id:     The ID of the device to be updated. Must be identical to the id field in the device object in the request body.
      * @param device: The device object which will be used to update the device.
@@ -108,8 +111,9 @@ public class ApiController {
     public Mono<ResponseEntity<Device>> putDevices(@PathVariable("id") String id, @RequestBody Device device) {
         ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         if (device.getId() != null && device.getId().equals(id)) {
-            return deviceService.updateDevice(device)
-                    .flatMap(updatedDevice -> this.sendOpenDeviceSignal(device, updatedDevice))
+            return deviceService
+                    .updateDevice(device)
+                    .flatMap(updatedDevice -> this.checkToOpenDevice(device, updatedDevice))
                     .map(updatedDevice -> ResponseEntity.created(builder.build().toUri()).body(updatedDevice)) // TODO: Think about returning 200/204 instead
                     .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
         } else {
@@ -117,11 +121,24 @@ public class ApiController {
         }
     }
 
-    private Mono<Device> sendOpenDeviceSignal(Device device, Device updatedDevice) {
-        if (device.getLocked() == false && openDevice(device)) {
-                return Mono.error(new Exception()); // TODO: Refactor this one
+    private Mono<Device> checkToOpenDevice(Device device, Device updatedDevice) {
+        // TODO: Think about moving this into deviceService
+        if (device.getLocked() != null && device.getLocked() == false) {
+            if (openDevice(device)) {
+                return deviceService.readDevice(device.getId())
+                        .switchIfEmpty(Mono.error(new Exception())) // TODO: Implement better exception
+                        // Repeatedly fetch the device the signal was send to until it is unlocked. 5 times with 1 second delays
+                        .filter(pendingDevice -> pendingDevice.getLocked() == false)
+                        .repeatWhenEmpty(Repeat.times(5).fixedBackoff(Duration.ofSeconds(1)))
+                        // TODO: Return error if device has not been unlocked after retries
+                        ;
+            } else {
+                return Mono.error(new Exception()); // TODO: Implement better exception
+            }
+        } else {
+            // Continue with updatedDevice if it doesn't have to be unlocked
+            return Mono.just(updatedDevice);
         }
-        return Mono.just(updatedDevice);
     }
 
     private Boolean openDevice(Device device) {

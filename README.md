@@ -10,12 +10,18 @@
 Die App realisiert einen REST-Service als API für CRUD-Operationen zur Kommunikation mit BBQB-Devices. Die API ermöglicht es außerdem Signale an die Devices zu senden.
 
 ## Endpoints
-- GET /: Test endpoint to check if service is available
-- GET /devices: Retrieve all devices 
-- GET /devices/{id}: Get a device by its id
-- POST /devices: Create a new device. Expects a JSON Body with a device object
-- PUT /devices/{id}: Update an existing device or if no device with the specified id exists create a new one at that location. Expects a JSON body with the device object to update/create. URL-Path id and request body id have to be the same! If the device object in the request body also contains the attribute "locked" with value "true", an open signal(30min) is send to the BBQB with id "deviceId".
-- POST /message: Send an open signal to a device to unlock it for 30min. Body must include a device object with value deviceId.
+- **GET /:**  
+Test endpoint to check if service is available
+- **GET /devices:**  
+Retrieve all devices 
+- **GET /devices/{id}:**  
+Get a device by its id
+- **POST /devices:**  
+Create a new device. Expects a JSON Body with a device object
+- **PUT /devices/{id}:**  
+Update an existing device or if no device with the specified id exists create a new one at that location. Expects a JSON body with the device object to update/create. URL-Path id and request body id have to be the same other wise response code 422 is returned! If the device object in the request body also contains the attribute "locked" with value "true", an open signal(30min) is send to the BBQB with id "deviceId". If this fails response code 500 is returned!
+- **POST /message:**  
+Send an open signal to a device to unlock it for 30min. Body must include a device object with value deviceId.
 
 ### Device Object
 ```

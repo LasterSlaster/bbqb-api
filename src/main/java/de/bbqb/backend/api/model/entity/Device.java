@@ -22,14 +22,12 @@ public class Device {
     private Boolean locked; // TODO: Change to Enum?
     private Boolean closed;
     private Double wifiSignal;
-    private Double isTemperaturePlate1;
-    private Double isTemperaturePlate2;
-    private Double setTemperaturePlate1;
-    private Double setTemperaturePlate2;
+    private Double temperaturePlate1;
+    private Double temperaturePlate2;
     private Location location;
     private Address address;
 
     public Device(String id, Device device) {
-        this(id, device.getDeviceId(), device.getNumber(), device.getPublishTime(), device.getLocked(), device.getClosed(), device.getWifiSignal(), device.getIsTemperaturePlate1(), device.getIsTemperaturePlate2(), device.getSetTemperaturePlate1(), device.getSetTemperaturePlate2(), device.getLocation(), device.getAddress());
+        this(id, device.getDeviceId(), device.getNumber(), device.getPublishTime(), device.getLocked(), device.getClosed(), device.getWifiSignal(), device.getTemperaturePlate1(), device.getTemperaturePlate2(), device.getLocation(), device.getAddress());
     }
 }

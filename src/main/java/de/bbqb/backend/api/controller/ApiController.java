@@ -35,7 +35,7 @@ public class ApiController {
     }
 
     /**
-     * Test endpoint. Only for development purposes.
+     * Endpoint for gcp appengine to test application availability
      *
      * @return hello world string
      */

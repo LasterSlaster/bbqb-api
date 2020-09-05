@@ -33,8 +33,10 @@ public class DeviceDoc {
     private Boolean locked;
     private Boolean closed;
     private Double wifiSignal;
-    private Double temperaturePlate1;
-    private Double temperaturePlate2;
+    private Double isTemperaturePlate1;
+    private Double isTemperaturePlate2;
+    private Double setTemperaturePlate1;
+    private Double setTemperaturePlate2;
     private GeoPoint location;
     private String addressName;
     private String street;

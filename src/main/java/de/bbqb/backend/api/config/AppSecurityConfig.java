@@ -26,7 +26,7 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
                 //.cors(Customizer.withDefaults())
                 .csrf().disable()
                 .authorizeRequests()
-                .anyRequest().permitAll()
+                .anyRequest().authenticated()
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 

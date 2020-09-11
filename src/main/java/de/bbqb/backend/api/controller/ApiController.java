@@ -40,7 +40,7 @@ public class ApiController {
      * @return hello world string
      */
     @GetMapping("/")
-    public String hello(@AuthenticationPrincipal OAuth2User oauth2User) {
+    public String hello() {
         return "Hello World";
     }
 

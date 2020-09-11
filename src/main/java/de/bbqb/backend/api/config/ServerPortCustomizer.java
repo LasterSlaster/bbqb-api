@@ -25,15 +25,15 @@ public class ServerPortCustomizer implements WebServerFactoryCustomizer<Configur
 
     @Override
     public void customize(ConfigurableWebServerFactory factory) {
-        //String portValue = env.getProperty(WebserverPortEnvVariable);
-        //int port = 8080;
-        //try {
-        //    port = Integer.parseInt(portValue);
-        //    LOGGER.info("Configure webserver port with port number " + String.valueOf(port) + " specified by environment variable " + WebserverPortEnvVariable);
-        //} catch (NumberFormatException e) {
-        //    LOGGER.info("Unable to resolve a valid port number from environment variable " + WebserverPortEnvVariable + ". Fallback to default port 8080.");
-        //}
+        String portValue = env.getProperty(WebserverPortEnvVariable);
+        int port = 8080;
+        try {
+            port = Integer.parseInt(portValue);
+            LOGGER.info("Configure webserver port with port number " + String.valueOf(port) + " specified by environment variable " + WebserverPortEnvVariable);
+        } catch (NumberFormatException e) {
+            LOGGER.info("Unable to resolve a valid port number from environment variable " + WebserverPortEnvVariable + ". Fallback to default port 8080.");
+        }
 
-        //factory.setPort(port);
+        factory.setPort(port);
     }
 }

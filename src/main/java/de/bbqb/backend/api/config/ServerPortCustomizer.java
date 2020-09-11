@@ -20,7 +20,7 @@ public class ServerPortCustomizer implements WebServerFactoryCustomizer<Configur
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerPortCustomizer.class);
     @Autowired
     private Environment env;
-    @Value("bbq.backend.webserver.port-env-variable")
+    @Value("${bbq.backend.webserver.port-env-variable}")
     private String WebserverPortEnvVariable;
 
     @Override

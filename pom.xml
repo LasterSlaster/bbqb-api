@@ -144,7 +144,6 @@
 				<version>2.1.0</version>
 				<configuration>
 					<projectId>GCLOUD_CONFIG</projectId>
-					<appEngineDirectory>./</appEngineDirectory>
 				</configuration>
 			</plugin>
 		</plugins>

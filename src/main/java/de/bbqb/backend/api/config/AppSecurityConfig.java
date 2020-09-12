@@ -29,10 +29,12 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .mvcMatchers(HttpMethod.GET,"/").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/devices").permitAll()
+                .mvcMatchers(HttpMethod.GET, "/_ah/start").permitAll() // Required by GAE to start up an instance
                 .anyRequest().authenticated()
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
+    // TODO: Configure CORS appropriately
     //@Bean
     //CorsConfigurationSource corsConfigurationSource() {
     //    CorsConfiguration configuration = new CorsConfiguration();

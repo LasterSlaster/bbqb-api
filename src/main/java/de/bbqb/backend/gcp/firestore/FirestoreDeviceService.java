@@ -67,6 +67,7 @@ public class FirestoreDeviceService implements DeviceService {
     /**
      * Send the open signal to the IoT-Device {@code device}
      * TODO: THink rethrowing the error and changing return type
+     * TODO: THink about movin this method to a separate Class
      * @param deviceId The device to send the signal to.
      *                 The IoT-Device is evaluated by its id.
      * @return true if signal was send successfully to device otherwise false

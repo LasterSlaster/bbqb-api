@@ -34,8 +34,8 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
                 .mvcMatchers(HttpMethod.GET, "/_ah/start").permitAll() // Required by GAE to start up an instance
                 .anyRequest().authenticated()
                 .and()
-                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
-                //.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
     // TODO: Configure CORS appropriately

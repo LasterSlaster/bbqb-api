@@ -1,7 +1,9 @@
 package de.bbqb.backend.api.controller;
 
 import de.bbqb.backend.api.model.entity.Device;
+import de.bbqb.backend.api.model.entity.User;
 import de.bbqb.backend.api.model.service.DeviceService;
+import de.bbqb.backend.api.model.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,11 +30,37 @@ import java.time.Duration;
 public class ApiController {
 
     private DeviceService deviceService;
+    private UserService userService;
 
-    public ApiController(DeviceService deviceService) {
+    public ApiController(DeviceService deviceService, UserService userService) {
         super();
         this.deviceService = deviceService;
+        this.userService = userService;
     }
+
+    /**
+     * Retrieve all users.
+     *
+     * @return An Array of user objects.
+     */
+    @GetMapping("/users")
+    public Flux<User> getUsers() {
+        return userService.readAllUsers();
+    }
+
+    /**
+     * Retrieve a user by its ID.
+     *
+     * @param userId: The ID of the user to retrieve.
+     * @return The user identified by the userId parameter.
+     */
+    @GetMapping("/users/{id}")
+    public Mono<ResponseEntity<User>> getUser(@PathVariable("id") String userId) {
+        return userService.readUser(userId).map((User user) -> {
+            return ResponseEntity.ok().body(user);
+        }).defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
 
     /**
      * Endpoint for gcp appengine to test application availability
@@ -42,6 +70,40 @@ public class ApiController {
     @GetMapping("/")
     public String hello() {
         return "Hello World";
+    }
+
+    /**
+     * Create/register a user with our backend service/database
+     *
+     * @param user: The user object to register
+     * @return The user information that was stored in the database
+     */
+    public Mono<ResponseEntity<User>> postUser(@RequestBody User user) {
+        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
+        return userService.createUser(user).map((User savedUser) -> {
+            URI uri = builder.build().toUri();
+            return ResponseEntity.created(uri).body(savedUser);
+        });
+    }
+
+    /**
+     * Update the information of a user.
+     * TODO: Currently not idempotent! Because it does not use the id from the request but creates a new one
+     *
+     * @param id:     The ID of the user to be updated. Must be identical to the id field in the user object in the request body.
+     * @param user: The user object which will be used to update the user.
+     * @return The updated user object.
+     */
+    public Mono<ResponseEntity<User>> putUser(@PathVariable("id") String id, @RequestBody User user) {
+        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
+        if (user.getId() != null && user.getId().equals(id)) {
+            return userService
+                    .updateUser(user)
+                    .map(updatedUser -> ResponseEntity.created(builder.build().toUri()).body(updatedUser)) // TODO: Think about returning 200/204 instead
+                    .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+        } else {
+            return Mono.just(ResponseEntity.unprocessableEntity().build()); // TODO: Create message "id is missing" or "not equal to deviceId"
+        }
     }
 
     /**

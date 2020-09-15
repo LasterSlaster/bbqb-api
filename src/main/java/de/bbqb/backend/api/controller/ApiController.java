@@ -131,13 +131,6 @@ public class ApiController {
                         // Repeatedly fetch the device the signal was send to until it is unlocked. 5 times with 1 second delays
                         .filter(pendingDevice -> pendingDevice.getLocked() == false)
                         .repeatWhenEmpty(Repeat.times(10).fixedBackoff(Duration.ofSeconds(1)))
-                        //.repeatWhenEmpty(comp -> comp.zipWith(Flux.range(1,5), (a,b) -> {
-                        //    if (b < 4) {
-                        //        return b;
-                        //    } else {
-                        //        throw Exceptions.propagate(new Exception());
-                        //    }
-                        //}).delayElements(Duration.ofSeconds(1L)))
                         .doOnSuccess(result -> {
                             // If the device is still locked after repeats throw exception
                             if (result == null) {

@@ -29,6 +29,7 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .authorizeRequests()
                 .mvcMatchers(HttpMethod.GET,"/").permitAll()
+                .mvcMatchers(HttpMethod.OPTIONS,"**/*").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/devices").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/devices/*").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/_ah/start").permitAll() // Required by GAE to start up an instance

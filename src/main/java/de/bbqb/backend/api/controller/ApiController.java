@@ -78,6 +78,7 @@ public class ApiController {
      * @param user: The user object to register
      * @return The user information that was stored in the database
      */
+    @PostMapping("/users")
     public Mono<ResponseEntity<User>> postUser(@RequestBody User user) {
         ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         return userService.createUser(user).map((User savedUser) -> {
@@ -94,6 +95,7 @@ public class ApiController {
      * @param user: The user object which will be used to update the user.
      * @return The updated user object.
      */
+    @PutMapping("/users/{id}")
     public Mono<ResponseEntity<User>> putUser(@PathVariable("id") String id, @RequestBody User user) {
         ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         if (user.getId() != null && user.getId().equals(id)) {

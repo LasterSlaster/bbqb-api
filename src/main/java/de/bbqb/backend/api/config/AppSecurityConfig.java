@@ -33,6 +33,7 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
                 .mvcMatchers(HttpMethod.GET, "/users/*").permitAll() // TODO: only some sort of admin should be able to read all users information
                 .mvcMatchers(HttpMethod.POST, "/users").permitAll() // TODO: Rethink this endpoint. The client should not be the one who connects our identity servers information with our api-service
                 .mvcMatchers(HttpMethod.PUT, "/users/*").permitAll() // TODO: only an authenticated client should be able to read its users information
+                .mvcMatchers(HttpMethod.OPTIONS,"**/*").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/devices").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/devices/*").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/_ah/start").permitAll() // Required by GAE to start up an instance

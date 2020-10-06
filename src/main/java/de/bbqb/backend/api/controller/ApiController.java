@@ -139,10 +139,8 @@ public class ApiController {
      */
     @GetMapping("/devices/{id}")
     public Mono<ResponseEntity<Device>> getDevice(@PathVariable("id") String deviceId) {
-        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         return deviceService.readDevice(deviceId).map((Device device) -> {
-            URI uri = builder.build().toUri();
-            return ResponseEntity.created(uri).body(device);
+            return ResponseEntity.ok().body(device);
         }).defaultIfEmpty(ResponseEntity.notFound().build());
     }
 

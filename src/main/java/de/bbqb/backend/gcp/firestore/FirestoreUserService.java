@@ -4,6 +4,7 @@ import com.google.cloud.firestore.Firestore;
 import de.bbqb.backend.api.model.entity.User;
 import de.bbqb.backend.api.model.service.UserService;
 import de.bbqb.backend.gcp.firestore.document.UserDoc;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -13,6 +14,7 @@ import reactor.core.publisher.Mono;
  *
  * @author Marius Degen
  */
+@Service
 public class FirestoreUserService implements UserService {
 
     private UserRepo repo;

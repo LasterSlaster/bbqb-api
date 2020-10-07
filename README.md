@@ -14,14 +14,14 @@ Die App realisiert einen REST-Service als API für CRUD-Operationen zur Kommunik
 Test endpoint to check if service is available
 
 
-- **GET /users:**
-Retrieve all users
-- **GET /users/{id}**
-Get a user by its id
+- **GET /users:**  
+Retrieve all users. Endpoint is secured by OIDC.
+- **GET /users/{id}**  
+Get a user by its id. Endpoint is secured by OIDC. {id} must be the same as the uid in the JWT.
 - **POST /users:**  
-Create a new user. Expects a JSON Body with a user object
+Create a new user. Expects a JSON Body with a user object. Endpoint is secured by OIDC. {id} must be the same as the uid in the JWT.
 - **PUT /users/{id}:**  
-Update an existing user or if no user with the specified id exists create a new one at that location. Expects a JSON body with the user object to update/create. URL-Path id and request body id have to be the same other wise response code 422 is returned!
+Update an existing user or if no user with the specified id exists create a new one at that location. Expects a JSON body with the user object to update/create. URL-Path id and request body id have to be the same other wise response code 422 is returned! Endpoint is secured by OIDC. {id} must be the same as the uid in the JWT.
 
 
 - **GET /devices:**  
@@ -29,9 +29,9 @@ Retrieve all devices
 - **GET /devices/{id}:**  
 Get a device by its id
 - **POST /devices:**  
-Create a new device. Expects a JSON Body with a device object
+Create a new device. Expects a JSON Body with a device object. Endpoint is secured by OIDC.
 - **PUT /devices/{id}:**  
-Update an existing device or if no device with the specified id exists create a new one at that location. Expects a JSON body with the device object to update/create. URL-Path id and request body id have to be the same other wise response code 422 is returned! If the device object in the request body also contains the attribute "locked" with value "true", an open signal(30min) is send to the BBQB with id "deviceId". If this fails response code 500 is returned!
+Update an existing device or if no device with the specified id exists create a new one at that location. Expects a JSON body with the device object to update/create. URL-Path id and request body id have to be the same other wise response code 422 is returned! If the device object in the request body also contains the attribute "locked" with value "true", an open signal(30min) is send to the BBQB with id "deviceId". If this fails response code 500 is returned! Endpoint is secured by OIDC.
 
 
 - **POST /message:**  
@@ -73,15 +73,13 @@ Send an open signal to a device to unlock it for 30min. Body must include a devi
 {
     "id": "1mdA7jOgGoAj7SKCRouf",
     "stripeId": "123",
-    "firebaseId": "123",
     "email": "email",
     "firstName": "Andreas",
     "lastName": "Müller"
 }
 ```
-- Attribute "id" specifies the Id by which the user object is uniquely identified
-- Attribute "stripeId" specifies the stripe Id/Account which is connected to this user
-- Attribute "firebaseId" specifies the user Id used by the identity provieder to identify the same user
+- Attribute "id" specifies the ID by which the user object can be uniquely identified. The same as used by the identity provider
+- Attribute "stripeId" specifies the stripe ID/Account which is connected to this user
 
 ## Firestore Database
 This service communicates with a gcp firestore to manage device information.

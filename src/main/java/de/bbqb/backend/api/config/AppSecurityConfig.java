@@ -29,10 +29,7 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .authorizeRequests()
                 .mvcMatchers(HttpMethod.GET,"/").permitAll()
-                .mvcMatchers(HttpMethod.GET, "/users").permitAll() // TODO: only an authenticated client should be able to read its users information
-                .mvcMatchers(HttpMethod.GET, "/users/*").permitAll() // TODO: only some sort of admin should be able to read all users information
-                .mvcMatchers(HttpMethod.POST, "/users").permitAll() // TODO: Rethink this endpoint. The client should not be the one who connects our identity servers information with our api-service
-                .mvcMatchers(HttpMethod.PUT, "/users/*").permitAll() // TODO: only an authenticated client should be able to read its users information
+                .mvcMatchers(HttpMethod.GET, "/users").hasRole("admin")
                 .mvcMatchers(HttpMethod.OPTIONS,"**/*").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/devices").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/devices/*").permitAll()

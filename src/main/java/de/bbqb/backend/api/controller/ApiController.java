@@ -6,8 +6,8 @@ import de.bbqb.backend.api.model.service.DeviceService;
 import de.bbqb.backend.api.model.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import reactor.core.Exceptions;
@@ -39,6 +39,17 @@ public class ApiController {
     }
 
     /**
+     * Endpoint for gcp appengine to test application availability
+     *
+     * @return hello world string
+     */
+    @GetMapping("/")
+    public String hello() {
+        return "Hello World";
+    }
+
+
+    /**
      * Retrieve all users.
      *
      * @return An Array of user objects.
@@ -54,22 +65,16 @@ public class ApiController {
      * @param userId: The ID of the user to retrieve.
      * @return The user identified by the userId parameter.
      */
+    // OidcUser.getAuthorities()  OAuth2User.getAuthorities()
     @GetMapping("/users/{id}")
-    public Mono<ResponseEntity<User>> getUser(@PathVariable("id") String userId) {
-        return userService.readUser(userId).map((User user) -> {
-            return ResponseEntity.ok().body(user);
-        }).defaultIfEmpty(ResponseEntity.notFound().build());
-    }
-
-
-    /**
-     * Endpoint for gcp appengine to test application availability
-     *
-     * @return hello world string
-     */
-    @GetMapping("/")
-    public String hello() {
-        return "Hello World";
+    public Mono<ResponseEntity<User>> getUser(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String userId) {
+        if (sub.getName().equals(userId)) {
+            return userService.readUser(userId).map((User user) -> {
+                return ResponseEntity.ok().body(user);
+            }).defaultIfEmpty(ResponseEntity.notFound().build());
+        } else {
+            return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+        }
     }
 
     /**
@@ -79,12 +84,16 @@ public class ApiController {
      * @return The user information that was stored in the database
      */
     @PostMapping("/users")
-    public Mono<ResponseEntity<User>> postUser(@RequestBody User user) {
-        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
-        return userService.createUser(user).map((User savedUser) -> {
-            URI uri = builder.build().toUri();
-            return ResponseEntity.created(uri).body(savedUser);
-        });
+    public Mono<ResponseEntity<User>> postUser(@AuthenticationPrincipal Authentication sub, @RequestBody User user) {
+        if (sub.getName().equals(user.getId())) {
+            ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
+            return userService.createUser(user).map((User savedUser) -> {
+                URI uri = builder.build().toUri();
+                return ResponseEntity.created(uri).body(savedUser);
+            });
+        } else {
+            return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+        }
     }
 
     /**
@@ -96,15 +105,19 @@ public class ApiController {
      * @return The updated user object.
      */
     @PutMapping("/users/{id}")
-    public Mono<ResponseEntity<User>> putUser(@PathVariable("id") String id, @RequestBody User user) {
-        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
-        if (user.getId() != null && user.getId().equals(id)) {
-            return userService
-                    .updateUser(user)
-                    .map(updatedUser -> ResponseEntity.created(builder.build().toUri()).body(updatedUser)) // TODO: Think about returning 200/204 instead
-                    .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+    public Mono<ResponseEntity<User>> putUser(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String id, @RequestBody User user) {
+        if (sub.getName().equals(id)) {
+            ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
+            if (user.getId() != null && user.getId().equals(id)) {
+                return userService
+                        .updateUser(user)
+                        .map(updatedUser -> ResponseEntity.created(builder.build().toUri()).body(updatedUser)) // TODO: Think about returning 200/204 instead
+                        .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+            } else {
+                return Mono.just(ResponseEntity.unprocessableEntity().build()); // TODO: Create message "id is missing" or "not equal to deviceId"
+            }
         } else {
-            return Mono.just(ResponseEntity.unprocessableEntity().build()); // TODO: Create message "id is missing" or "not equal to deviceId"
+            return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
         }
     }
 

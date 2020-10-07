@@ -28,7 +28,7 @@ public class FirestoreUserService implements UserService {
     @Override
     public Mono<User> createUser(User user) {
         String id = firestore.collection("users").document().getId();
-        UserDoc userDoc = new UserDoc(id, user.getFirstName(), user.getLastName(), user.getStripeId(), user.getFirebaseId(), user.getEmail());
+        UserDoc userDoc = new UserDoc(id, user.getFirstName(), user.getLastName(), user.getStripeId(), user.getEmail());
         return this.repo.save(mapToUserDoc(user, userDoc)).map(this::mapFromUserDoc);
     }
 
@@ -58,9 +58,6 @@ public class FirestoreUserService implements UserService {
         if (user.getEmail() != null) {
             userDoc.setEmail(user.getEmail());
         }
-        if (user.getFirebaseId() != null) {
-            userDoc.setFirebaseId(user.getFirebaseId());
-        }
         if (user.getFirstName() != null) {
             userDoc.setFirstName(user.getFirstName());
         }
@@ -74,6 +71,6 @@ public class FirestoreUserService implements UserService {
     }
 
     private User mapFromUserDoc(UserDoc userDoc) {
-        return new User(userDoc.getId(), userDoc.getFirstName(), userDoc.getLastName(), userDoc.getStripeId(), userDoc.getFirebaseId(), userDoc.getEmail());
+        return new User(userDoc.getId(), userDoc.getFirstName(), userDoc.getLastName(), userDoc.getStripeId(), userDoc.getEmail());
     }
 }

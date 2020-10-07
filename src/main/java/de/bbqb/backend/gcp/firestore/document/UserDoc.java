@@ -24,6 +24,5 @@ public class UserDoc {
     private String firstName;
     private String lastName;
     private String stripeId;
-    private String firebaseId;
     private String email;
 }

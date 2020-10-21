@@ -7,6 +7,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.cloudiot.v1.CloudIot;
 import com.google.api.services.cloudiot.v1.CloudIotScopes;
 import com.google.api.services.cloudiot.v1.model.SendCommandToDeviceRequest;
+import com.google.api.services.cloudiot.v1.model.SendCommandToDeviceResponse;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.Timestamp;
@@ -20,13 +21,14 @@ import de.bbqb.backend.gcp.firestore.document.DeviceDoc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Date;
 
 // TODO: Implement business layer and separate business logic from external systems like REST and DB(firestore,pubsub,iot)
 // TODO: Move Documentation to Interface
@@ -64,17 +66,26 @@ public class FirestoreDeviceService implements DeviceService {
 
     /**
      * Send the open signal to the IoT-Device {@code device}
-     *
-     * @param device The device to send the signal to.
-     *               The IoT-Device is evaluated by its id.
+     * TODO: THink rethrowing the error and changing return type
+     * TODO: THink about movin this method to a separate Class
+     * @param deviceId The device to send the signal to.
+     *                 The IoT-Device is evaluated by its id.
+     * @return true if signal was send successfully to device otherwise false
      */
     @Override
-    public void openDevice(Device device) {
+    public Boolean openDevice(String deviceId) {
         try {
             final String devicePath = String.format("projects/%s/locations/%s/registries/%s/devices/%s", gcpProjectId,
-                    cloudRegion, registryName, device.getDeviceId());
+                    cloudRegion, registryName, deviceId);
 
-            GoogleCredentials credential = GoogleCredentials.getApplicationDefault().createScoped(CloudIotScopes.all());
+            GoogleCredentials credential;
+            try {
+                credential = GoogleCredentials.getApplicationDefault().createScoped(CloudIotScopes.all());
+            } catch (IOException e) {
+                // For development deploys
+                // Try to load GCP credentials file from classpath (resources folder)
+                credential = GoogleCredentials.fromStream(new ClassPathResource("bbqb-prd-a6d055683b57.json").getInputStream()).createScoped(CloudIotScopes.all());
+            }
             JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
             HttpRequestInitializer init = new HttpCredentialsAdapter(credential);
             final CloudIot service = new CloudIot.Builder(GoogleNetHttpTransport.newTrustedTransport(), jsonFactory,
@@ -84,12 +95,15 @@ public class FirestoreDeviceService implements DeviceService {
             Base64.Encoder encoder = Base64.getEncoder();
             String encPayload = encoder.encodeToString(this.openDeviceMessage.getBytes(StandardCharsets.UTF_8.name()));
             req.setBinaryData(encPayload);
-            LOGGER.info("Sending command to %s%n", devicePath);
+            LOGGER.info("Sending command to " + devicePath);
 
-            service.projects().locations().registries().devices().sendCommandToDevice(devicePath, req).execute();
+            SendCommandToDeviceResponse response = service.projects().locations().registries().devices().sendCommandToDevice(devicePath, req).execute();
             LOGGER.info("Command response: sent");
+            LOGGER.info("Response is :" + response.toString());
+            return true;
         } catch (Exception e) {
             LOGGER.info(e.getMessage() + e.getStackTrace());
+            return false;
         }
     }
 
@@ -100,8 +114,8 @@ public class FirestoreDeviceService implements DeviceService {
      *               The IoT-Device is evaluated by its id.
      */
     @Override
-    public void lockDevice(Device device) {
-        // TODO Auto-generated method stub
+    public Boolean lockDevice(Device device) {
+        return false;
     }
 
     /**
@@ -118,10 +132,10 @@ public class FirestoreDeviceService implements DeviceService {
         String id = firestore.collection("devices").document().getId();
         DeviceDoc deviceDoc = new DeviceDoc();
         deviceDoc.setId(id);
-        deviceDoc.setStatus("idle");
+        deviceDoc.setLocked(true);
         deviceDoc.setPublishTime(Timestamp.now());
-
-        return deviceRepo.save(mapDeviceToDeviceDoc(device, deviceDoc)).map(this::mapFromDeviceDoc);
+        // TODO: Set lockSTatus, drawerStatus, timestamp, temp, wifi defaults???
+        return deviceRepo.save(mapToDeviceDoc(device, deviceDoc)).map(this::mapFromDeviceDoc);
     }
 
     /**
@@ -135,10 +149,11 @@ public class FirestoreDeviceService implements DeviceService {
     @Override
     public Mono<Device> updateDevice(Device device) {
         // TODO: Wrap read, update, save into a transaction
-        return deviceRepo.findFirstByDeviceId(device.getDeviceId())
-                .map(deviceDoc -> this.mapDeviceToDeviceDoc(device, deviceDoc))
-                .flatMap(deviceRepo::save)
-                .map(this::mapFromDeviceDoc);
+        return deviceRepo.findById(device.getId())
+                .map(deviceDoc -> this.mapToDeviceDoc(device, deviceDoc))
+                .flatMap(deviceRepo::save) // if existing(not Empty) update deviceDocument
+                .map(this::mapFromDeviceDoc)
+                .switchIfEmpty(this.createDevice(device)); // otherwise create a new DeviceDoc
     }
 
     /**
@@ -165,34 +180,42 @@ public class FirestoreDeviceService implements DeviceService {
 
     /**
      * Map a Device object to a DeviceDoc object.
+     * Mutates the parameter deviceDoc!
      *
      * @param device The device to map to a DeviceDoc
+     * @param deviceDoc device document which will be updated with the information from device
      * @return A DeviceDoc with the information from device
      */
-    private DeviceDoc mapToDeviceDoc(Device device) {
-        Address address = device.getAddress();
-        Location location = device.getLocation();
-
-        DeviceDoc deviceDoc = new DeviceDoc(device.getId(), device.getDeviceId(), device.getName(), device.getNumber(),
-                Timestamp.of(new Date(device.getPublishTime())), device.getStatus(),
-                new GeoPoint(location.getLatitude(), location.getLongitude()), address.getName(),
-                address.getStreet(), address.getHouseNumber(), address.getCity(), address.getPostalcode(),
-                address.getCountry());
-
-        return deviceDoc;
-    }
-
-    private DeviceDoc mapDeviceToDeviceDoc(Device device, DeviceDoc deviceDoc) {
-        deviceDoc.setDeviceId(device.getDeviceId());
-        deviceDoc.setName(device.getName());
-        deviceDoc.setNumber(device.getNumber());
-        deviceDoc.setAddressName(device.getAddress().getName());
-        deviceDoc.setCountry(device.getAddress().getCountry());
-        deviceDoc.setCity(device.getAddress().getCity());
-        deviceDoc.setPostalCode(device.getAddress().getPostalcode());
-        deviceDoc.setStreet(device.getAddress().getStreet());
-        deviceDoc.setHouseNumber(device.getAddress().getHouseNumber());
-        deviceDoc.setLocation(new GeoPoint(device.getLocation().getLatitude(), device.getLocation().getLongitude()));
+    private DeviceDoc mapToDeviceDoc(Device device, DeviceDoc deviceDoc) {
+        if (device.getDeviceId() != null) {
+            deviceDoc.setDeviceId(device.getDeviceId());
+        }
+        if (device.getNumber() != null) {
+            deviceDoc.setNumber(device.getNumber());
+        }
+        if (device.getAddress() != null) {
+            if (device.getAddress().getName() != null) {
+                deviceDoc.setAddressName(device.getAddress().getName());
+            }
+            if (device.getAddress().getCountry() != null) {
+                deviceDoc.setCountry(device.getAddress().getCountry());
+            }
+            if (device.getAddress().getCity() != null) {
+                deviceDoc.setCity(device.getAddress().getCity());
+            }
+            if (device.getAddress().getPostalcode() != null) {
+                deviceDoc.setPostalCode(device.getAddress().getPostalcode());
+            }
+            if (device.getAddress().getStreet() != null) {
+                deviceDoc.setStreet(device.getAddress().getStreet());
+            }
+            if (device.getAddress().getHouseNumber() != null) {
+                deviceDoc.setHouseNumber(device.getAddress().getHouseNumber());
+            }
+        }
+        if (device.getLocation() != null) {
+            deviceDoc.setLocation(new GeoPoint(device.getLocation().getLatitude(), device.getLocation().getLongitude()));
+        }
         return deviceDoc;
     }
 
@@ -200,23 +223,23 @@ public class FirestoreDeviceService implements DeviceService {
      * Map a DeviceDoc object to a Device object.
      *
      * @param deviceDoc The DeviceDoc to map to a Device
-     * @return ADevice with the information from deviceDoc
+     * @return A device with the information from deviceDoc
      */
     private Device mapFromDeviceDoc(DeviceDoc deviceDoc) {
         Location location = new Location(deviceDoc.getLocation().getLatitude(),
                 deviceDoc.getLocation().getLongitude());
         Address address = new Address(deviceDoc.getCountry(), deviceDoc.getPostalCode(), deviceDoc.getCity(),
                 deviceDoc.getStreet(), deviceDoc.getHouseNumber(), deviceDoc.getAddressName());
-        return new Device(deviceDoc.getId(), deviceDoc.getDeviceId(), deviceDoc.getName(), deviceDoc.getNumber(),
+        return new Device(deviceDoc.getId(), deviceDoc.getDeviceId(), deviceDoc.getNumber(),
                 convertToMilliseconds(deviceDoc.getPublishTime().getSeconds(), (long) deviceDoc.getPublishTime().getNanos()),
-                deviceDoc.getStatus(), location, address);
+                deviceDoc.getLocked(), deviceDoc.getClosed(), deviceDoc.getWifiSignal(), deviceDoc.getIsTemperaturePlate1(), deviceDoc.getIsTemperaturePlate2(), location, address);
     }
 
     /**
-     * Convert seconds and nanoseconds part since January 1, 1970, 00:00:00 UTC
+     * Convert seconds and nanoseconds part to milliseconds since January 1, 1970, 00:00:00 UTC
      *
-     * @param seconds
-     * @param nanos
+     * @param seconds seconds since Unix epoche
+     * @param nanos nanoseconds part of seconds
      * @return milliseconds since January 1, 1970, 00:00:00 UTC
      */
     private Long convertToMilliseconds(Long seconds, Long nanos) {

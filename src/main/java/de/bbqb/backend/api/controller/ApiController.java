@@ -1,14 +1,22 @@
 package de.bbqb.backend.api.controller;
 
 import de.bbqb.backend.api.model.entity.Device;
+import de.bbqb.backend.api.model.entity.User;
 import de.bbqb.backend.api.model.service.DeviceService;
+import de.bbqb.backend.api.model.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.retry.Repeat;
 
 import java.net.URI;
+import java.time.Duration;
 
 /**
  * REST Controller with endpoints to manage device resources like
@@ -22,20 +30,95 @@ import java.net.URI;
 public class ApiController {
 
     private DeviceService deviceService;
+    private UserService userService;
 
-    public ApiController(DeviceService deviceService) {
+    public ApiController(DeviceService deviceService, UserService userService) {
         super();
         this.deviceService = deviceService;
+        this.userService = userService;
     }
 
     /**
-     * Test endpoint. Only for development purposes.
+     * Endpoint for gcp appengine to test application availability
      *
      * @return hello world string
      */
     @GetMapping("/")
     public String hello() {
         return "Hello World";
+    }
+
+
+    /**
+     * Retrieve all users.
+     *
+     * @return An Array of user objects.
+     */
+    @GetMapping("/users")
+    public Flux<User> getUsers() {
+        return userService.readAllUsers();
+    }
+
+    /**
+     * Retrieve a user by its ID.
+     *
+     * @param userId: The ID of the user to retrieve.
+     * @return The user identified by the userId parameter.
+     */
+    // OidcUser.getAuthorities()  OAuth2User.getAuthorities()
+    @GetMapping("/users/{id}")
+    public Mono<ResponseEntity<User>> getUser(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String userId) {
+        if (sub.getName().equals(userId)) {
+            return userService.readUser(userId).map((User user) -> {
+                return ResponseEntity.ok().body(user);
+            }).defaultIfEmpty(ResponseEntity.notFound().build());
+        } else {
+            return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+        }
+    }
+
+    /**
+     * Create/register a user with our backend service/database
+     *
+     * @param user: The user object to register
+     * @return The user information that was stored in the database
+     */
+    @PostMapping("/users")
+    public Mono<ResponseEntity<User>> postUser(@AuthenticationPrincipal Authentication sub, @RequestBody User user) {
+        if (sub.getName().equals(user.getId())) {
+            ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
+            return userService.createUser(user).map((User savedUser) -> {
+                URI uri = builder.build().toUri();
+                return ResponseEntity.created(uri).body(savedUser);
+            });
+        } else {
+            return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+        }
+    }
+
+    /**
+     * Update the information of a user.
+     * TODO: Currently not idempotent! Because it does not use the id from the request but creates a new one
+     *
+     * @param id:     The ID of the user to be updated. Must be identical to the id field in the user object in the request body.
+     * @param user: The user object which will be used to update the user.
+     * @return The updated user object.
+     */
+    @PutMapping("/users/{id}")
+    public Mono<ResponseEntity<User>> putUser(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String id, @RequestBody User user) {
+        if (sub.getName().equals(id)) {
+            ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
+            if (user.getId() != null && user.getId().equals(id)) {
+                return userService
+                        .updateUser(user)
+                        .map(updatedUser -> ResponseEntity.created(builder.build().toUri()).body(updatedUser)) // TODO: Think about returning 200/204 instead
+                        .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+            } else {
+                return Mono.just(ResponseEntity.unprocessableEntity().build()); // TODO: Create message "id is missing" or "not equal to deviceId"
+            }
+        } else {
+            return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+        }
     }
 
     /**
@@ -46,9 +129,11 @@ public class ApiController {
      */
     @PostMapping("/message")
     public ResponseEntity<Device> postMessage(@RequestBody Device device) {
-        deviceService.openDevice(device);
-
-        return ResponseEntity.accepted().build();
+        if (device.getDeviceId() != null && deviceService.openDevice(device.getDeviceId())) { //TODO: research processing sideeffects(IO) in if-statement evaluation
+            return ResponseEntity.accepted().build();
+        } else {
+            return ResponseEntity.unprocessableEntity().build();
+        }
     }
 
     /**
@@ -69,10 +154,8 @@ public class ApiController {
      */
     @GetMapping("/devices/{id}")
     public Mono<ResponseEntity<Device>> getDevice(@PathVariable("id") String deviceId) {
-        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         return deviceService.readDevice(deviceId).map((Device device) -> {
-            URI uri = builder.build().toUri();
-            return ResponseEntity.created(uri).body(device);
+            return ResponseEntity.ok().body(device);
         }).defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
@@ -94,6 +177,7 @@ public class ApiController {
 
     /**
      * Update the information of a device.
+     * TODO: Currently not idempotent! Because it does not use the id from the request but creates a new one
      *
      * @param id:     The ID of the device to be updated. Must be identical to the id field in the device object in the request body.
      * @param device: The device object which will be used to update the device.
@@ -102,15 +186,43 @@ public class ApiController {
     @PutMapping("/devices/{id}")
     public Mono<ResponseEntity<Device>> putDevices(@PathVariable("id") String id, @RequestBody Device device) {
         ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
-        // TODO: Validate device object more
         if (device.getId() != null && device.getId().equals(id)) {
-            return deviceService.updateDevice(device).map((Device updatedDevice) -> {
-                URI uri = builder.build().toUri();
-                return ResponseEntity.created(uri).body(updatedDevice);
-            });
+            return deviceService
+                    .updateDevice(device)
+                    .flatMap(updatedDevice -> this.checkToOpenDevice(device, updatedDevice))
+                    .map(updatedDevice -> ResponseEntity.created(builder.build().toUri()).body(updatedDevice)) // TODO: Think about returning 200/204 instead
+                    .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
         } else {
-            // TODO: Create message "id is missing" or "not equal to deviceId"
-            return Mono.just(ResponseEntity.unprocessableEntity().build());
+            return Mono.just(ResponseEntity.unprocessableEntity().build()); // TODO: Create message "id is missing" or "not equal to deviceId"
         }
+    }
+
+    private Mono<Device> checkToOpenDevice(Device device, Device updatedDevice) {
+        // TODO: Think about moving this into deviceService
+        if (device.getLocked() != null && device.getLocked() == false) {
+            if (openDevice(device)) {
+                return deviceService.readDevice(device.getId())
+                        .switchIfEmpty(Mono.error(new Exception())) // TODO: Implement better exception
+                        // Repeatedly fetch the device the signal was send to until it is unlocked. 5 times with 1 second delays
+                        .filter(pendingDevice -> pendingDevice.getLocked() == false)
+                        .repeatWhenEmpty(Repeat.times(10).fixedBackoff(Duration.ofSeconds(1)))
+                        .doOnSuccess(result -> {
+                            // If the device is still locked after repeats throw exception
+                            if (result == null) {
+                                throw Exceptions.propagate(new Exception());
+                            }
+                        })
+                        ;
+            } else {
+                return Mono.error(new Exception()); // TODO: Implement better exception
+            }
+        } else {
+            // Continue with updatedDevice if it doesn't have to be unlocked
+            return Mono.just(updatedDevice);
+        }
+    }
+
+    private Boolean openDevice(Device device) {
+        return device.getDeviceId() != null && deviceService.openDevice(device.getDeviceId());
     }
 }

@@ -16,7 +16,7 @@ import org.springframework.cloud.gcp.data.firestore.Document;
  * Device bean to represent a device document from a gcp firestore database.
  * This class is used for Jackson un-/marshaling
  *
- * @author laster
+ * @author Marius Degen
  */
 @Getter
 @Setter
@@ -28,10 +28,15 @@ public class DeviceDoc {
     @DocumentId
     private String id;
     private String deviceId;
-    private String name;
     private String number;
     private Timestamp publishTime;
-    private String status;
+    private Boolean locked;
+    private Boolean closed;
+    private Double wifiSignal;
+    private Double isTemperaturePlate1;
+    private Double isTemperaturePlate2;
+    private Double setTemperaturePlate1;
+    private Double setTemperaturePlate2;
     private GeoPoint location;
     private String addressName;
     private String street;

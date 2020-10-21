@@ -15,15 +15,24 @@ import reactor.core.publisher.Mono;
 
 import java.util.Date;
 
+/**
+ * @author Marius Degen
+ */
 @Disabled
 public class FirestoreDeviceServiceTest {
 
-    private final String id = "deviceId";
+    private final String id = "id";
     private final String deviceId = "deviceId";
     private final String name = "name";
-    private final String number = "deviceId";
+    private final String number = "123";
     private final Long publishTime = new Date().getTime();
-    private final String status = "deviceId";
+    private final Boolean lockStatus = true;
+    private final Boolean drawerStatus = true;
+    private final Double wifiSignal = 89.0;
+    private final Double setTemperature1 = 30.0;
+    private final Double setTemperature2 = 30.0;
+    private final Double isTemperature1 = 30.0;
+    private final Double isTemperature2 = 30.0;
     private final Address address = new Address("Deutschland", "78467", "Konstanz", "Straße", "2", "Adressname");
     private final Location location = new Location(1.1, 1.2);
     private FirestoreDeviceService sut;
@@ -40,7 +49,7 @@ public class FirestoreDeviceServiceTest {
     @Test
     public void testCreateDevice() {
         // given
-        Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
+        //Device device = new Device(id, deviceId, number,  publishTime, lockStatus, drawerStatus, wifiSignal, isTemperature1, isTemperature2, setTemperature1, setTemperature2, location, address);
 
         // when
         //Mono<Device> savedDevice = this.sut.createDevice(device);
@@ -53,14 +62,14 @@ public class FirestoreDeviceServiceTest {
     @Test
     public void testUpdateDevice() {
         // given
-        Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
+        //Device device = new Device(id, deviceId, number,  publishTime, lockStatus, drawerStatus, wifiSignal, isTemperature1, isTemperature2, setTemperature1, setTemperature2, location, address);
 
         // when
-        Mono<Device> updatedDevice = this.sut.updateDevice(device);
+        //Mono<Device> updatedDevice = this.sut.updateDevice(device);
 
         // then
-        Device actualUpdatedDevice = updatedDevice.block();
-        actualUpdatedDevice.equals(device);
+        //Device actualUpdatedDevice = updatedDevice.block();
+        //actualUpdatedDevice.equals(device);
     }
 
     //@Test
@@ -88,10 +97,9 @@ public class FirestoreDeviceServiceTest {
     @Test
     public void testOpenDevice() {
         // given
-        Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
 
         // when
-        this.sut.openDevice(device);
+        this.sut.openDevice(deviceId);
 
         // then
     }
@@ -99,10 +107,10 @@ public class FirestoreDeviceServiceTest {
     @Test
     public void testLockDevice() {
         // given
-        Device device = new Device(id, deviceId, name, number, publishTime, status, location, address);
+        //Device device = new Device(id, deviceId, number,  publishTime, lockStatus, drawerStatus, wifiSignal, isTemperature1, isTemperature2, setTemperature1, setTemperature2, location, address);
 
         // when
-        this.sut.lockDevice(device);
+        //this.sut.lockDevice(device);
 
         // then
     }

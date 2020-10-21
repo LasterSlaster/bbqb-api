@@ -7,7 +7,7 @@ package de.bbqb.backend.api.config;
  * @author Marius Degen
  */
 //@Configuration
-public class SpringContextConfig {
+public class AppContextConfig {
 
 // Currenty CORS is configured with an annotation on the controller class
 //	@Bean

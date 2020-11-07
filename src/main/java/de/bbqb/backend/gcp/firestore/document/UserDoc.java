@@ -21,8 +21,8 @@ import org.springframework.cloud.gcp.data.firestore.Document;
 public class UserDoc {
     @DocumentId
     private String id;
+    private String stripeCustomerId;
     private String firstName;
     private String lastName;
-    private String stripeId;
     private String email;
 }

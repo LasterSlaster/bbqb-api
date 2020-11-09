@@ -1,9 +1,11 @@
 package de.bbqb.backend.api.controller;
 
+import de.bbqb.backend.api.model.entity.Card;
 import de.bbqb.backend.api.model.entity.Device;
 import de.bbqb.backend.api.model.entity.User;
 import de.bbqb.backend.api.model.service.DeviceService;
 import de.bbqb.backend.api.model.service.UserService;
+import de.bbqb.backend.stripe.StripeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,6 +19,7 @@ import reactor.retry.Repeat;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.List;
 
 /**
  * REST Controller with endpoints to manage device resources like
@@ -31,11 +34,13 @@ public class ApiController {
 
     private DeviceService deviceService;
     private UserService userService;
+    private StripeService stripeService;
 
-    public ApiController(DeviceService deviceService, UserService userService) {
+    public ApiController(DeviceService deviceService, UserService userService, StripeService stripeService) {
         super();
         this.deviceService = deviceService;
         this.userService = userService;
+        this.stripeService = stripeService;
     }
 
     /**
@@ -48,6 +53,53 @@ public class ApiController {
         return "Hello World";
     }
 
+    /**
+     * Create a SetupIntent to add a card as a payment method for a customer/user on stripe.
+     *
+     * @return A client secret to complete the SetupIntent
+     */
+    @PostMapping("/cards")
+    public Mono<ResponseEntity<String>> postCardSetup(@AuthenticationPrincipal Authentication sub) {
+        return userService.readUser(sub.getName())
+                .flatMap(stripeService::createSetupCardIntent)
+                .map(ResponseEntity::ok);
+    }
+
+    /**
+     * Retrieve all cards of a specific user.
+     *
+     * @return The list of cards of this user
+     */
+    @GetMapping("/cards")
+    public Mono<ResponseEntity<List<Card>>> getCards(@AuthenticationPrincipal Authentication sub) {
+        return userService.readUser(sub.getName())
+                .flatMap(stripeService::readCards)
+                .map(ResponseEntity::ok);
+    }
+
+    /**
+     * Delete a specific card of a user
+     *
+     * @return The deleted card
+     */
+    @DeleteMapping("/cards/{id}")
+    public Mono<ResponseEntity<Card>> deleteCard(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String cardId) {
+        return userService.readUser(sub.getName())
+                .flatMap(user -> stripeService.deleteCard(cardId, user))
+                .map(ResponseEntity::ok);
+    }
+
+    /**
+     * Create a PaymentIntent to pay for a bbqb booking/session.
+     *
+     * @return A client secret to complete the PaymentIntent
+     */
+    @PostMapping("/payments")
+    public Mono<ResponseEntity<String>> postCardPaymentSetup(@AuthenticationPrincipal Authentication sub) {
+        return userService.readUser(sub.getName())
+                .flatMap(user -> stripeService.createCardPaymentIntent(user, 100L)) // TODO: Check how to retrieve the price
+                .map(ResponseEntity::ok);
+    }
 
     /**
      * Retrieve all users.
@@ -87,10 +139,10 @@ public class ApiController {
     public Mono<ResponseEntity<User>> postUser(@AuthenticationPrincipal Authentication sub, @RequestBody User user) {
         if (sub.getName().equals(user.getId())) {
             ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
-            return userService.createUser(user).map((User savedUser) -> {
-                URI uri = builder.build().toUri();
-                return ResponseEntity.created(uri).body(savedUser);
-            });
+            return stripeService.createCustomer(user)
+                    // TODO: createUser overrides id attribute
+                    .flatMap(customer -> userService.createUser(customer).map(
+                            ResponseEntity.created(builder.build().toUri())::body));
         } else {
             return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
         }

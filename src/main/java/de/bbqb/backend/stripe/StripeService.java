@@ -108,6 +108,7 @@ public class StripeService implements CustomerService {
                         .setCurrency("eur")
                         .setAmount(amount)
                         // Use the first card payment method found for the payment
+                        .setReceiptEmail(user.getEmail())
                         .setPaymentMethod(paymentMethods.getData().get(0).getId())
                         .setConfirm(true) // TODO: Check the effects of this setting
                         .setOffSession(true) // With this set to true PaymentIntent throws an error if authentication is required!

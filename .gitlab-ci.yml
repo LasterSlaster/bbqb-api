@@ -19,7 +19,7 @@ cache:
 
 before_script:
   - chmod +x mvnw
-  
+
 build:
   stage: build
   image: openjdk:13
@@ -52,8 +52,6 @@ stage:
 
 deploy:prd:
   <<: *google_cloud_auth
-  only:
-    - master
   stage: deploy
   environment: Production
   script:

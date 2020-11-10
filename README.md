@@ -34,6 +34,18 @@ Create a new device. Expects a JSON Body with a device object. Endpoint is secur
 Update an existing device or if no device with the specified id exists create a new one at that location. Expects a JSON body with the device object to update/create. URL-Path id and request body id have to be the same other wise response code 422 is returned! If the device object in the request body also contains the attribute "locked" with value "true", an open signal(30min) is send to the BBQB with id "deviceId". If this fails response code 500 is returned! Endpoint is secured by OIDC.
 
 
+- **GET /cards:**
+Get all cards for the current user. The user is identified by the `sub` field in the JWT token.
+- **DELETE /card/{id}**
+Delete a specific card for the current user. The user is identified by the `sub` field in the JWT token.
+- **POST /cards:**
+Create a Stripe SetupIntent to add a card to current user and return the corresponding client secret in the response body. The user is identified by the `sub` field in the JWT token.
+
+
+- **POST /payments**
+Create a Stripe PaymentIntent to process a payment from the user current user to BBQ-Butler. The user is identified by the `sub` field in the JWT token.
+
+
 - **POST /message:**  
 Send an open signal to a device to unlock it for 30min. Body must include a device object with value deviceId.
 
@@ -71,16 +83,23 @@ Send an open signal to a device to unlock it for 30min. Body must include a devi
 ### User Object
 ```
 {
-    "id": "1mdA7jOgGoAj7SKCRouf",
-    "stripeId": "123",
-    "email": "email",
-    "firstName": "Andreas",
-    "lastName": "Müller"
+"id": "1mdA7jOgGoAj7SKCRouf",
+"stripeCustomerId": "123",
+"email": "email",
+"firstName": "Andreas",
+"lastName": "Müller"
 }
 ```
 - Attribute "id" specifies the ID by which the user object can be uniquely identified. The same as used by the identity provider
 - Attribute "stripeId" specifies the stripe ID/Account which is connected to this user
 
+### Card Object
+```
+{
+"cardNumber": "1mdA7jOgGoAj7SKCRouf",
+}
+```
+- Attribute "cardNumber" is Stripes identifier for a specific (credit) card.
 ## Firestore Database
 This service communicates with a gcp firestore to manage device information.
 It expects a device document with the following structure:

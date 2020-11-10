@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 public class StripeService implements CustomerService {
 
-    public StripeService(@Value("bbq.backend.stripe.apikey") String apiKey) {
+    public StripeService(@Value("${bbq.backend.stripe.apikey}") String apiKey) {
         Stripe.apiKey = apiKey;
     }
 

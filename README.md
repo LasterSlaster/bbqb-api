@@ -108,7 +108,9 @@ It expects a device document with the following structure:
 
 ## Development
 ### Configuration
-- Für die Kommunikation mit der GCP benötigt die Applikation einen Weg sich zu Authentifizieren. Dies kann mit einem Keyfile eines Dienstaccounts als lokales File im Properties File unter `pring.cloud.gcp.credentials.location` angegeben werden oder über die Umgebungsvariable `GOOGLE_APPLICATION_CREDENTIALS` erfolgen.
+- Für die Kommunikation mit der GCP benötigt die Applikation einen Weg sich zu Authentifizieren. Hierzu wird eine Datei erwartet, welche das Secret eines Dienstaccounts enthält. Den Pfad zur Datei muss im Properties File unter `pring.cloud.gcp.credentials.location` angegeben werden oder über die Umgebungsvariable `GOOGLE_APPLICATION_CREDENTIALS` erfolgen.
+- Vor dem Deployment muss noch das Property `bbq.backend.stripe.apikey` im application.properties File oder als jvm Parameter mit `-D` angegeben werden. Als Wert wird der secret key für die Stripe API benötigt.
+
 
 ### Firestore Emulator
 Ein Firestore Emulator kann über das google cloud sdk gcloud gestartet werden. Hierzu muss der firestore emulator installiert werden.

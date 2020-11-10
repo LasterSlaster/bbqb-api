@@ -38,6 +38,8 @@ test:
 stage:
   stage: stage
   image: openjdk:13
+  before_script:
+    - echo -e "\nbbq.backend.stripe.apikey=${STRIPE_API_KEY}" >> ./src/main/resources/application.properties
   script: ./mvnw $MAVEN_CLI_OPTS package appengine:stage -DskipTests
   artifacts:
     paths:

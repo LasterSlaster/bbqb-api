@@ -20,7 +20,7 @@ cache:
 before_script:
   - chmod +x mvnw
   - echo bbq.backend.stripe.apikey=${STRIPE_API_KEY} >> ./src/main/resources/application.properties
-  
+
 build:
   stage: build
   image: openjdk:13

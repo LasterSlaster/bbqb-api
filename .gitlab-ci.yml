@@ -52,6 +52,8 @@ stage:
 
 deploy:prd:
   <<: *google_cloud_auth
+  only:
+    - master
   stage: deploy
   environment: Production
   script:

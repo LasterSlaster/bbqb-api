@@ -1,7 +1,11 @@
 package de.bbqb.backend.api.controller;
 
-import de.bbqb.backend.api.model.entity.Card;
+import com.stripe.model.Card;
+import com.stripe.model.PaymentIntent;
+import com.stripe.model.PaymentSource;
+import com.stripe.model.SetupIntent;
 import de.bbqb.backend.api.model.entity.Device;
+import de.bbqb.backend.api.model.entity.Payment;
 import de.bbqb.backend.api.model.entity.User;
 import de.bbqb.backend.api.model.service.DeviceService;
 import de.bbqb.backend.api.model.service.UserService;
@@ -54,24 +58,12 @@ public class ApiController {
     }
 
     /**
-     * Create a SetupIntent to add a card as a payment method for a customer/user on stripe.
-     *
-     * @return A client secret to complete the SetupIntent
-     */
-    @PostMapping("/cards")
-    public Mono<ResponseEntity<String>> postCardSetup(@AuthenticationPrincipal Authentication sub) {
-        return userService.readUser(sub.getName())
-                .flatMap(stripeService::createSetupCardIntent)
-                .map(ResponseEntity::ok);
-    }
-
-    /**
      * Retrieve all cards of a specific user.
      *
      * @return The list of cards of this user
      */
     @GetMapping("/cards")
-    public Mono<ResponseEntity<List<Card>>> getCards(@AuthenticationPrincipal Authentication sub) {
+    public Mono<ResponseEntity<List<com.stripe.model.Card>>> getCards(@AuthenticationPrincipal Authentication sub) {
         return userService.readUser(sub.getName())
                 .flatMap(stripeService::readCards)
                 .map(ResponseEntity::ok);
@@ -83,9 +75,21 @@ public class ApiController {
      * @return The deleted card
      */
     @DeleteMapping("/cards/{id}")
-    public Mono<ResponseEntity<Card>> deleteCard(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String cardId) {
+    public Mono<ResponseEntity<com.stripe.model.Card>> deleteCard(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String cardId) {
         return userService.readUser(sub.getName())
                 .flatMap(user -> stripeService.deleteCard(cardId, user))
+                .map(ResponseEntity::ok);
+    }
+
+    /**
+     * Create a SetupIntent to add a card as a payment method for a customer/user on stripe.
+     *
+     * @return A client secret to complete the SetupIntent
+     */
+    @PostMapping("/cards")
+    public Mono<ResponseEntity<SetupIntent>> postCardSetup(@AuthenticationPrincipal Authentication sub) {
+        return userService.readUser(sub.getName())
+                .flatMap(stripeService::createSetupCardIntent)
                 .map(ResponseEntity::ok);
     }
 
@@ -95,7 +99,7 @@ public class ApiController {
      * @return A client secret to complete the PaymentIntent
      */
     @PostMapping("/payments")
-    public Mono<ResponseEntity<String>> postCardPaymentSetup(@AuthenticationPrincipal Authentication sub) {
+    public Mono<ResponseEntity<PaymentIntent>> postCardPaymentSetup(@AuthenticationPrincipal Authentication sub) {
         return userService.readUser(sub.getName())
                 .flatMap(user -> stripeService.createCardPaymentIntent(user, 100L)) // TODO: Check how to retrieve the price
                 .map(ResponseEntity::ok);

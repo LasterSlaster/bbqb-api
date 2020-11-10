@@ -78,21 +78,21 @@ public class StripeService implements CustomerService {
         });
     }
 
-    public Mono<String> createSetupCardIntent(User user) {
+    public Mono<SetupIntent> createSetupCardIntent(User user) {
         return Mono.create(monoSink -> {
             try {
                 SetupIntentCreateParams setupIntentParams = SetupIntentCreateParams.builder()
                         .setCustomer(user.getStripeCustomerId())
                         .build();
                 SetupIntent setupIntent = SetupIntent.create(setupIntentParams);
-                monoSink.success(setupIntent.getClientSecret());
+                monoSink.success(setupIntent);
             } catch (StripeException e) {
                 monoSink.error(e);
             }
         });
     }
 
-    public Mono<String> createCardPaymentIntent(User user, Long amount) {
+    public Mono<PaymentIntent> createCardPaymentIntent(User user, Long amount) {
         return Mono.create(monoSink -> {
             try {
                 PaymentMethodListParams params =
@@ -115,7 +115,7 @@ public class StripeService implements CustomerService {
                         .build();
                 PaymentIntent paymentIntent = PaymentIntent.create(paymentIntentParams);
 
-                monoSink.success(paymentIntent.getClientSecret());
+                monoSink.success(paymentIntent);
             } catch (StripeException e) {
                 monoSink.error(e);
             }
@@ -123,7 +123,7 @@ public class StripeService implements CustomerService {
     }
 
     // befor calling this method make sure the customer has no open subscritions if your about to delete the last remaining card
-    public Mono<Card> deleteCard(String id, User user) {
+    public Mono<com.stripe.model.Card> deleteCard(String id, User user) {
         return Mono.create(monoSink -> {
             Map<String, Object> retrieveParams = new HashMap<>();
             List<String> expandList = new ArrayList<>();
@@ -137,14 +137,14 @@ public class StripeService implements CustomerService {
                 );
                 com.stripe.model.Card card = (com.stripe.model.Card) customer.getSources().retrieve(id);
                 com.stripe.model.Card deletedCard = card.delete();
-                monoSink.success(new Card(card.getId()));
+                monoSink.success(card);
             } catch (StripeException e) {
                 monoSink.error(e);
             }
         });
     }
 
-    public Mono<List<Card>> readCards(User user) {
+    public Mono<List<com.stripe.model.Card>> readCards(User user) {
         return Mono.create(cardMonoSink -> {
             List<String> expandList = new ArrayList<>();
             expandList.add("sources");
@@ -169,9 +169,7 @@ public class StripeService implements CustomerService {
                 cardMonoSink.success(
                         cards.getData()
                                 .stream()
-                                .map(card -> {
-                                    return new Card(card.getId());
-                                })
+                                .map(paymentSource -> (com.stripe.model.Card) paymentSource)
                                 .collect(Collectors.toList()));
             } catch (StripeException e) {
                 cardMonoSink.error(e);

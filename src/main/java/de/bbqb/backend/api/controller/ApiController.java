@@ -1,11 +1,8 @@
 package de.bbqb.backend.api.controller;
 
-import com.stripe.model.Card;
 import com.stripe.model.PaymentIntent;
-import com.stripe.model.PaymentSource;
 import com.stripe.model.SetupIntent;
 import de.bbqb.backend.api.model.entity.Device;
-import de.bbqb.backend.api.model.entity.Payment;
 import de.bbqb.backend.api.model.entity.User;
 import de.bbqb.backend.api.model.service.DeviceService;
 import de.bbqb.backend.api.model.service.UserService;

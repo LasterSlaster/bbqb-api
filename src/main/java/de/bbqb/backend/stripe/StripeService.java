@@ -6,7 +6,6 @@ import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
-import de.bbqb.backend.api.model.entity.Card;
 import de.bbqb.backend.api.model.entity.User;
 import de.bbqb.backend.api.model.service.CustomerService;
 import org.springframework.beans.factory.annotation.Value;

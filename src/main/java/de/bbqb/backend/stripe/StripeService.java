@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -133,19 +132,13 @@ public class StripeService implements CustomerService {
     // befor calling this method make sure the customer has no open subscritions if your about to delete the last remaining card
     public Mono<Card> deleteCard(String id, User user) {
         return Mono.create(monoSink -> {
-            Map<String, Object> retrieveParams = new HashMap<>();
-            List<String> expandList = new ArrayList<>();
-            expandList.add("sources");
-            retrieveParams.put("expand", expandList);
             try {
-                Customer customer = Customer.retrieve(
-                        user.getStripeCustomerId(),
-                        retrieveParams,
-                        null
-                );
-                com.stripe.model.Card card = (com.stripe.model.Card) customer.getSources().retrieve(id);
-                com.stripe.model.Card deletedCard = card.delete();
-                monoSink.success(new de.bbqb.backend.api.model.entity.Card(card.getId(), null, card.getBrand(), card.getExpMonth(), card.getExpYear(), card.getLast4()));
+                PaymentMethod paymentMethod =
+                        PaymentMethod.retrieve(id);
+
+                PaymentMethod updatedPaymentMethod =
+                        paymentMethod.detach();
+                monoSink.success(new de.bbqb.backend.api.model.entity.Card(paymentMethod.getId(), null, paymentMethod.getCard().getBrand(), paymentMethod.getCard().getExpMonth(), paymentMethod.getCard().getExpYear(), paymentMethod.getCard().getLast4()));
             } catch (StripeException e) {
                 monoSink.error(e);
             }

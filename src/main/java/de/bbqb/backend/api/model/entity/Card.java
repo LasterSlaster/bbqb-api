@@ -6,5 +6,19 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class Card {
-    private final String cardNumber;
+    private final String id;
+    private final String clientSecret;
+    private final String brand;
+    private final Integer expMonth;
+    private final Integer expYear;
+    private final String last4;
+
+    public Card(String clientSecret) {
+        this.clientSecret = clientSecret;
+        this.id = null;
+        this.brand = null;
+        this.expMonth = null;
+        this.expYear = null;
+        this.last4 = null;
+    }
 }

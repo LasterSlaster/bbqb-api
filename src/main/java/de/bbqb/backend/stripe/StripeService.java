@@ -154,32 +154,19 @@ public class StripeService implements CustomerService {
 
     public Mono<List<Card>> readCards(User user) {
         return Mono.create(cardMonoSink -> {
-            List<String> expandList = new ArrayList<>();
-            expandList.add("sources");
-
-            Map<String, Object> retrieveParams = new HashMap<>();
-            retrieveParams.put("expand", expandList);
+            Map<String, Object> params = new HashMap<>();
+            params.put("customer", user.getStripeCustomerId());
+            params.put("type", "card");
 
             try {
-                Customer customer =
-                        Customer.retrieve(
-                                user.getStripeCustomerId(),
-                                retrieveParams,
-                                null
-                        );
-
-                Map<String, Object> params = new HashMap<>();
-                params.put("object", "card");
-                params.put("limit", 3);
-
-                PaymentSourceCollection cards =
-                        customer.getSources().list(params);
+                PaymentMethodCollection paymentMethods =
+                        PaymentMethod.list(params);
                 cardMonoSink.success(
-                        cards.getData()
+                        paymentMethods.getData()
                                 .stream()
                                 .map(paymentSource -> {
-                                    com.stripe.model.Card card = (com.stripe.model.Card) paymentSource;
-                                    return new Card(card.getId(), null, card.getBrand(), card.getExpMonth(), card.getExpYear(), card.getLast4());
+                                    PaymentMethod.Card card = paymentSource.getCard();
+                                    return new Card(paymentSource.getId(), null, card.getBrand(), card.getExpMonth(), card.getExpYear(), card.getLast4());
                                 })
                                 .collect(Collectors.toList()));
             } catch (StripeException e) {

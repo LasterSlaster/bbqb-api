@@ -62,7 +62,7 @@ public class ApiController {
      * @return The list of cards of this user
      */
     @GetMapping("/cards")
-    public Mono<ResponseEntity<List<com.stripe.model.Card>>> getCards(@AuthenticationPrincipal Authentication sub) {
+    public Mono<ResponseEntity<List<Card>>> getCards(@AuthenticationPrincipal Authentication sub) {
         return userService.readUser(sub.getName())
                 .flatMap(stripeService::readCards)
                 .map(ResponseEntity::ok);
@@ -74,7 +74,7 @@ public class ApiController {
      * @return The deleted card
      */
     @DeleteMapping("/cards/{id}")
-    public Mono<ResponseEntity<com.stripe.model.Card>> deleteCard(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String cardId) {
+    public Mono<ResponseEntity<Card>> deleteCard(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String cardId) {
         return userService.readUser(sub.getName())
                 .flatMap(user -> stripeService.deleteCard(cardId, user))
                 .map(ResponseEntity::ok);

@@ -9,8 +9,8 @@ public class Card {
     private final String id;
     private final String clientSecret;
     private final String brand;
-    private final Integer expMonth;
-    private final Integer expYear;
+    private final Long expMonth;
+    private final Long expYear;
     private final String last4;
 
     public Card(String clientSecret) {

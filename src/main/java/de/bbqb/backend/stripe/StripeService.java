@@ -8,6 +8,7 @@ import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
 import de.bbqb.backend.api.model.entity.Payment;
 import de.bbqb.backend.api.model.entity.User;
+import de.bbqb.backend.api.model.entity.Card;
 import de.bbqb.backend.api.model.service.CustomerService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -78,7 +79,7 @@ public class StripeService implements CustomerService {
         });
     }
 
-    public Mono<de.bbqb.backend.api.model.entity.Card> createSetupCardIntent(User user) {
+    public Mono<Card> createSetupCardIntent(User user) {
         return Mono.create(monoSink -> {
             try {
                 SetupIntentCreateParams setupIntentParams = SetupIntentCreateParams.builder()
@@ -130,7 +131,7 @@ public class StripeService implements CustomerService {
     }
 
     // befor calling this method make sure the customer has no open subscritions if your about to delete the last remaining card
-    public Mono<com.stripe.model.Card> deleteCard(String id, User user) {
+    public Mono<Card> deleteCard(String id, User user) {
         return Mono.create(monoSink -> {
             Map<String, Object> retrieveParams = new HashMap<>();
             List<String> expandList = new ArrayList<>();
@@ -144,14 +145,14 @@ public class StripeService implements CustomerService {
                 );
                 com.stripe.model.Card card = (com.stripe.model.Card) customer.getSources().retrieve(id);
                 com.stripe.model.Card deletedCard = card.delete();
-                monoSink.success(card);
+                monoSink.success(new de.bbqb.backend.api.model.entity.Card(card.getId(), null, card.getBrand(), card.getExpMonth(), card.getExpYear(), card.getLast4()));
             } catch (StripeException e) {
                 monoSink.error(e);
             }
         });
     }
 
-    public Mono<List<com.stripe.model.Card>> readCards(User user) {
+    public Mono<List<Card>> readCards(User user) {
         return Mono.create(cardMonoSink -> {
             List<String> expandList = new ArrayList<>();
             expandList.add("sources");
@@ -176,7 +177,10 @@ public class StripeService implements CustomerService {
                 cardMonoSink.success(
                         cards.getData()
                                 .stream()
-                                .map(paymentSource -> (com.stripe.model.Card) paymentSource)
+                                .map(paymentSource -> {
+                                    com.stripe.model.Card card = (com.stripe.model.Card) paymentSource;
+                                    return new Card(card.getId(), null, card.getBrand(), card.getExpMonth(), card.getExpYear(), card.getLast4());
+                                })
                                 .collect(Collectors.toList()));
             } catch (StripeException e) {
                 cardMonoSink.error(e);

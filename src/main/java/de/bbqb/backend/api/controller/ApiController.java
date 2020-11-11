@@ -75,7 +75,8 @@ public class ApiController {
     public Mono<ResponseEntity<Card>> deleteCard(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String cardId) {
         return userService.readUser(sub.getName())
                 .flatMap(user -> stripeService.deleteCard(cardId, user))
-                .map(ResponseEntity::ok);
+                .map(ResponseEntity::ok)
+                .onErrorReturn(ResponseEntity.notFound().build());
     }
 
     /**

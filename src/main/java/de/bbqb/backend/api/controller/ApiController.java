@@ -158,7 +158,7 @@ public class ApiController {
      * Update the information of a user.
      * TODO: Currently not idempotent! Because it does not use the id from the request but creates a new one
      *
-     * @param id:     The ID of the user to be updated. Must be identical to the id field in the user object in the request body.
+     * @param id:   The ID of the user to be updated. Must be identical to the id field in the user object in the request body.
      * @param user: The user object which will be used to update the user.
      * @return The updated user object.
      */
@@ -269,8 +269,7 @@ public class ApiController {
                             if (result == null) {
                                 throw Exceptions.propagate(new Exception());
                             }
-                        })
-                        ;
+                        });
             } else {
                 return Mono.error(new Exception()); // TODO: Implement better exception
             }

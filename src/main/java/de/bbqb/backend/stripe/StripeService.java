@@ -6,6 +6,7 @@ import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
+import de.bbqb.backend.api.model.entity.Payment;
 import de.bbqb.backend.api.model.entity.User;
 import de.bbqb.backend.api.model.service.CustomerService;
 import org.springframework.beans.factory.annotation.Value;
@@ -77,21 +78,21 @@ public class StripeService implements CustomerService {
         });
     }
 
-    public Mono<SetupIntent> createSetupCardIntent(User user) {
+    public Mono<de.bbqb.backend.api.model.entity.Card> createSetupCardIntent(User user) {
         return Mono.create(monoSink -> {
             try {
                 SetupIntentCreateParams setupIntentParams = SetupIntentCreateParams.builder()
                         .setCustomer(user.getStripeCustomerId())
                         .build();
                 SetupIntent setupIntent = SetupIntent.create(setupIntentParams);
-                monoSink.success(setupIntent);
+                monoSink.success(new de.bbqb.backend.api.model.entity.Card(setupIntent.getClientSecret()));
             } catch (StripeException e) {
                 monoSink.error(e);
             }
         });
     }
 
-    public Mono<PaymentIntent> createCardPaymentIntent(User user, Long amount) {
+    public Mono<Payment> createCardPaymentIntent(User user, Long amount) {
         return Mono.create(monoSink -> {
             try {
                 PaymentMethodListParams params =
@@ -114,7 +115,14 @@ public class StripeService implements CustomerService {
                         .build();
                 PaymentIntent paymentIntent = PaymentIntent.create(paymentIntentParams);
 
-                monoSink.success(paymentIntent);
+                monoSink.success(
+                        new Payment(
+                                paymentIntent.getId(),
+                                paymentIntent.getClientSecret(),
+                                paymentIntent.getAmount(),
+                                "germany", // The country where the service is deliverd. Currently hard coded but can be read from the device document
+                                paymentIntent.getCurrency(),
+                                "BBQ BUTLER Miete"));
             } catch (StripeException e) {
                 monoSink.error(e);
             }

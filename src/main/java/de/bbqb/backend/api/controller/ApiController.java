@@ -2,7 +2,9 @@ package de.bbqb.backend.api.controller;
 
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.SetupIntent;
+import de.bbqb.backend.api.model.entity.Card;
 import de.bbqb.backend.api.model.entity.Device;
+import de.bbqb.backend.api.model.entity.Payment;
 import de.bbqb.backend.api.model.entity.User;
 import de.bbqb.backend.api.model.service.DeviceService;
 import de.bbqb.backend.api.model.service.UserService;
@@ -84,7 +86,7 @@ public class ApiController {
      * @return A client secret to complete the SetupIntent
      */
     @PostMapping("/cards")
-    public Mono<ResponseEntity<SetupIntent>> postCardSetup(@AuthenticationPrincipal Authentication sub) {
+    public Mono<ResponseEntity<Card>> postCardSetup(@AuthenticationPrincipal Authentication sub) {
         return userService.readUser(sub.getName())
                 .flatMap(stripeService::createSetupCardIntent)
                 .map(ResponseEntity::ok);
@@ -96,7 +98,7 @@ public class ApiController {
      * @return A client secret to complete the PaymentIntent
      */
     @PostMapping("/payments")
-    public Mono<ResponseEntity<PaymentIntent>> postCardPaymentSetup(@AuthenticationPrincipal Authentication sub) {
+    public Mono<ResponseEntity<Payment>> postCardPaymentSetup(@AuthenticationPrincipal Authentication sub) {
         return userService.readUser(sub.getName())
                 .flatMap(user -> stripeService.createCardPaymentIntent(user, 100L)) // TODO: Check how to retrieve the price
                 .map(ResponseEntity::ok);

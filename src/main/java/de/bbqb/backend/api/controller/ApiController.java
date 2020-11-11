@@ -124,9 +124,9 @@ public class ApiController {
     @GetMapping("/users/{id}")
     public Mono<ResponseEntity<User>> getUser(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String userId) {
         if (sub.getName().equals(userId)) {
-            return userService.readUser(userId).map((User user) -> {
-                return ResponseEntity.ok().body(user);
-            }).defaultIfEmpty(ResponseEntity.notFound().build());
+            return userService.readUser(userId)
+                    .map(ResponseEntity.ok()::body)
+                    .defaultIfEmpty(ResponseEntity.notFound().build());
         } else {
             return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
         }
@@ -139,13 +139,16 @@ public class ApiController {
      * @return The user information that was stored in the database
      */
     @PostMapping("/users")
-    public Mono<ResponseEntity<User>> postUser(@AuthenticationPrincipal Authentication sub, @RequestBody User user) {
+    public Mono<ResponseEntity<Object>> postUser(@AuthenticationPrincipal Authentication sub, @RequestBody User user) {
         if (sub.getName().equals(user.getId())) {
             ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
-            return stripeService.createCustomer(user)
-                    // TODO: createUser overrides id attribute
-                    .flatMap(customer -> userService.createUser(customer).map(
-                            ResponseEntity.created(builder.build().toUri())::body));
+            return userService.readUser(user.getId())
+                    .flatMap(alreadyExistingUser -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build())) // User already exists
+                    .switchIfEmpty(
+                            stripeService.createCustomer(user)
+                                    // TODO: createUser overrides id attribute
+                                    .flatMap(customer -> userService.createUser(customer))
+                                    .map(ResponseEntity.created(builder.build().toUri())::body));
         } else {
             return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
         }
@@ -166,7 +169,7 @@ public class ApiController {
             if (user.getId() != null && user.getId().equals(id)) {
                 return userService
                         .updateUser(user)
-                        .map(updatedUser -> ResponseEntity.created(builder.build().toUri()).body(updatedUser)) // TODO: Think about returning 200/204 instead
+                        .map(ResponseEntity.created(builder.build().toUri())::body) // TODO: Think about returning 200/204 instead
                         .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
             } else {
                 return Mono.just(ResponseEntity.unprocessableEntity().build()); // TODO: Create message "id is missing" or "not equal to deviceId"
@@ -209,9 +212,9 @@ public class ApiController {
      */
     @GetMapping("/devices/{id}")
     public Mono<ResponseEntity<Device>> getDevice(@PathVariable("id") String deviceId) {
-        return deviceService.readDevice(deviceId).map((Device device) -> {
-            return ResponseEntity.ok().body(device);
-        }).defaultIfEmpty(ResponseEntity.notFound().build());
+        return deviceService.readDevice(deviceId)
+                .map(ResponseEntity.ok()::body)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     /**
@@ -245,7 +248,7 @@ public class ApiController {
             return deviceService
                     .updateDevice(device)
                     .flatMap(updatedDevice -> this.checkToOpenDevice(device, updatedDevice))
-                    .map(updatedDevice -> ResponseEntity.created(builder.build().toUri()).body(updatedDevice)) // TODO: Think about returning 200/204 instead
+                    .map(ResponseEntity.created(builder.build().toUri())::body) // TODO: Think about returning 200/204 instead
                     .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
         } else {
             return Mono.just(ResponseEntity.unprocessableEntity().build()); // TODO: Create message "id is missing" or "not equal to deviceId"

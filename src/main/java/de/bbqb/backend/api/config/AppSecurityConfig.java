@@ -33,6 +33,7 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
                 .mvcMatchers(HttpMethod.OPTIONS,"**/*").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/devices").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/devices/*").permitAll()
+                .mvcMatchers(HttpMethod.POST, "/stripe/webhook").permitAll() // Permit all so that stripe servers can call this endpoint
                 .mvcMatchers(HttpMethod.GET, "/_ah/start").permitAll() // Required by GAE to start up an instance
                 .anyRequest().authenticated()
                 .and()

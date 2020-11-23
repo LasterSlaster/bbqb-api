@@ -1,12 +1,11 @@
 package de.bbqb.backend.api.controller;
 
-import de.bbqb.backend.api.model.entity.Card;
-import de.bbqb.backend.api.model.entity.Device;
-import de.bbqb.backend.api.model.entity.Payment;
-import de.bbqb.backend.api.model.entity.User;
+import de.bbqb.backend.api.model.entity.*;
+import de.bbqb.backend.api.model.service.BookingService;
 import de.bbqb.backend.api.model.service.DeviceService;
 import de.bbqb.backend.api.model.service.UserService;
 import de.bbqb.backend.stripe.StripeService;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -36,12 +35,14 @@ public class ApiController {
     private DeviceService deviceService;
     private UserService userService;
     private StripeService stripeService;
+    private BookingService bookingService;
 
-    public ApiController(DeviceService deviceService, UserService userService, StripeService stripeService) {
+    public ApiController(DeviceService deviceService, UserService userService, StripeService stripeService, BookingService bookingService) {
         super();
         this.deviceService = deviceService;
         this.userService = userService;
         this.stripeService = stripeService;
+        this.bookingService = bookingService;
     }
 
     /**
@@ -97,9 +98,9 @@ public class ApiController {
      * @return A client secret to complete the PaymentIntent
      */
     @PostMapping("/payments")
-    public Mono<ResponseEntity<Payment>> postCardPaymentSetup(@AuthenticationPrincipal Authentication sub) {
+    public Mono<ResponseEntity<Payment>> postCardPaymentSetup(@AuthenticationPrincipal Authentication sub, BookingRequest request) {
         return userService.readUser(sub.getName())
-                .flatMap(user -> stripeService.createCardPaymentIntent(user, 100L)) // TODO: Check how to retrieve the price
+                .flatMap(user -> stripeService.createCardPaymentIntent(user, 100L, request.getPaymentMethodId())) // TODO: Check how to retrieve the price
                 .map(ResponseEntity::ok);
     }
 
@@ -181,17 +182,54 @@ public class ApiController {
     /**
      * Send an open device signal to a device.
      *
-     * @param device: The device to send the signal to.
+     * @param request: The device to send the signal to.
      * @return The device to which the signal was send to with its up to date information.
      */
-    @PostMapping("/message")
-    public ResponseEntity<Device> postMessage(@RequestBody Device device) {
-        if (device.getDeviceId() != null && deviceService.openDevice(device.getDeviceId())) { //TODO: research processing sideeffects(IO) in if-statement evaluation
-            return ResponseEntity.accepted().build();
+    @PostMapping("/bookings")
+    public Mono<ResponseEntity<Payment>> postBookings(@AuthenticationPrincipal Authentication sub, @RequestBody BookingRequest request) {
+        // TODO: 1. Create and return payment intent 2. Create "pending session" with paymentIntentId and deviceId 3. wait for payment confirmation in webhook 4. unlock device and create/update grill session
+        // TODO: Validate request(Check if timeslot and deviceId is valid)
+        if (request.getDeviceId() != null) {
+            return userService.readUser(sub.getName())
+                    .flatMap(user -> stripeService.createCardPaymentIntent(
+                            user,
+                            100L,
+                            request.getPaymentMethodId())
+                            .map(payment -> Pair.of(payment, user))) // TODO: Check how to retrieve the price
+                    .flatMap(pair -> bookingService.createBooking(
+                            pair.getFirst().getId(),
+                            request.getDeviceId(),
+                            pair.getSecond().getId(),
+                            request.getTimeslot())
+                            .map(booking -> pair.getFirst())) // TODO: evaluate what kind of resource to return
+                    .map(ResponseEntity::ok);
         } else {
-            return ResponseEntity.unprocessableEntity().build();
+            return Mono.just(ResponseEntity.unprocessableEntity().build());
         }
     }
+
+    // TODO: Endpoint to retrieve all grill sessions for a specific user
+
+    /**
+     * Endpoint to retrieve all bookings for the current user
+     */
+    @GetMapping("/bookings")
+    public Flux<Booking> getBookings(@AuthenticationPrincipal Authentication sub) {
+        return bookingService.findAllBookingsByUserId(sub.getName());
+    }
+
+
+    /**
+     * Endpoint to retrieve all bookings for the current user
+     */
+    //@GetMapping("/bookings/{id}")
+    //public ResponseEntity<Flux<Booking>> getBookings(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String id) {
+    //    return bookingService.findBooking(id)
+    //            .filter(booking -> booking.getUserId().contentEquals(sub.getName()))
+    //            .map(ResponseEntity::ok)
+    //            //.switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+    //            ;
+    //}
 
     /**
      * Retrieve all devices.
@@ -246,6 +284,7 @@ public class ApiController {
         if (device.getId() != null && device.getId().equals(id)) {
             return deviceService
                     .updateDevice(device)
+                    // TODO: Check if there is a active booking for this device and user
                     .flatMap(updatedDevice -> this.checkToOpenDevice(device, updatedDevice))
                     .map(ResponseEntity.created(builder.build().toUri())::body) // TODO: Think about returning 200/204 instead
                     .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
@@ -257,8 +296,9 @@ public class ApiController {
     private Mono<Device> checkToOpenDevice(Device device, Device updatedDevice) {
         // TODO: Think about moving this into deviceService
         if (device.getLocked() != null && device.getLocked() == false) {
-            if (openDevice(device)) {
-                return deviceService.readDevice(device.getId())
+            if (device.getDeviceId() != null) {
+                return deviceService.openDevice(device.getDeviceId())
+                        .then(deviceService.readDevice(device.getId()))
                         .switchIfEmpty(Mono.error(new Exception())) // TODO: Implement better exception
                         // Repeatedly fetch the device the signal was send to until it is unlocked. 5 times with 1 second delays
                         .filter(pendingDevice -> pendingDevice.getLocked() == false)
@@ -276,9 +316,5 @@ public class ApiController {
             // Continue with updatedDevice if it doesn't have to be unlocked
             return Mono.just(updatedDevice);
         }
-    }
-
-    private Boolean openDevice(Device device) {
-        return device.getDeviceId() != null && deviceService.openDevice(device.getDeviceId());
     }
 }

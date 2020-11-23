@@ -68,13 +68,14 @@ public class FirestoreDeviceService implements DeviceService {
      * Send the open signal to the IoT-Device {@code device}
      * TODO: THink rethrowing the error and changing return type
      * TODO: THink about movin this method to a separate Class
+     *
      * @param deviceId The device to send the signal to.
      *                 The IoT-Device is evaluated by its id.
      * @return true if signal was send successfully to device otherwise false
      */
     @Override
-    public Boolean openDevice(String deviceId) {
-        try {
+    public Mono<Void> openDevice(String deviceId) {
+        return Mono.fromCallable(() -> {
             final String devicePath = String.format("projects/%s/locations/%s/registries/%s/devices/%s", gcpProjectId,
                     cloudRegion, registryName, deviceId);
 
@@ -100,11 +101,8 @@ public class FirestoreDeviceService implements DeviceService {
             SendCommandToDeviceResponse response = service.projects().locations().registries().devices().sendCommandToDevice(devicePath, req).execute();
             LOGGER.info("Command response: sent");
             LOGGER.info("Response is :" + response.toString());
-            return true;
-        } catch (Exception e) {
-            LOGGER.info(e.getMessage() + e.getStackTrace());
-            return false;
-        }
+            return null;
+        });
     }
 
     /**
@@ -182,7 +180,7 @@ public class FirestoreDeviceService implements DeviceService {
      * Map a Device object to a DeviceDoc object.
      * Mutates the parameter deviceDoc!
      *
-     * @param device The device to map to a DeviceDoc
+     * @param device    The device to map to a DeviceDoc
      * @param deviceDoc device document which will be updated with the information from device
      * @return A DeviceDoc with the information from device
      */
@@ -239,7 +237,7 @@ public class FirestoreDeviceService implements DeviceService {
      * Convert seconds and nanoseconds part to milliseconds since January 1, 1970, 00:00:00 UTC
      *
      * @param seconds seconds since Unix epoche
-     * @param nanos nanoseconds part of seconds
+     * @param nanos   nanoseconds part of seconds
      * @return milliseconds since January 1, 1970, 00:00:00 UTC
      */
     private Long convertToMilliseconds(Long seconds, Long nanos) {

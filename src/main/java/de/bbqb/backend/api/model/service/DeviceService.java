@@ -19,7 +19,7 @@ public interface DeviceService {
 
     public Flux<Device> readAllDevices();
 
-    public Boolean openDevice(String deviceId);
+    public Mono<Void> openDevice(String deviceId);
 
     public Boolean lockDevice(Device device);
 

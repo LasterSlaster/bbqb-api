@@ -92,7 +92,7 @@ public class StripeService implements CustomerService {
         });
     }
 
-    public Mono<Payment> createCardPaymentIntent(User user, Long amount) {
+    public Mono<Payment> createCardPaymentIntent(User user, Long amount, String paymentMethodId) {
         return Mono.create(monoSink -> {
             try {
                 PaymentMethodListParams params =
@@ -103,26 +103,29 @@ public class StripeService implements CustomerService {
                 // Retrieve all card payment methods for this user
                 PaymentMethodCollection paymentMethods = PaymentMethod.list(params);
 
-                PaymentIntentCreateParams paymentIntentParams = PaymentIntentCreateParams.builder()
-                        .setCustomer(user.getStripeCustomerId())
-                        .setCurrency("eur")
-                        .setAmount(amount)
-                        // Use the first card payment method found for the payment
-                        .setReceiptEmail(user.getEmail())
-                        .setPaymentMethod(paymentMethods.getData().get(0).getId())
-                        .setConfirm(true) // TODO: Check the effects of this setting
-                        .setOffSession(true) // With this set to true PaymentIntent throws an error if authentication is required!
-                        .build();
-                PaymentIntent paymentIntent = PaymentIntent.create(paymentIntentParams);
+                // Check if the paymentMethodId is valid for the selected user
+                if (paymentMethods.getData().stream().anyMatch(paymentMethod -> paymentMethod.getId() == paymentMethodId)) {
+                    PaymentIntentCreateParams paymentIntentParams = PaymentIntentCreateParams.builder()
+                            .setCustomer(user.getStripeCustomerId())
+                            .setCurrency("eur")
+                            .setAmount(amount)
+                            .setReceiptEmail(user.getEmail())
+                            .setPaymentMethod(paymentMethodId)
+                            .setConfirm(true) // TODO: Check the effects of this setting
+                            .setOffSession(true) // With this set to true PaymentIntent throws an error if authentication is required!
+                            .build();
+                    PaymentIntent paymentIntent = PaymentIntent.create(paymentIntentParams);
 
-                monoSink.success(
-                        new Payment(
-                                paymentIntent.getId(),
-                                paymentIntent.getClientSecret(),
-                                paymentIntent.getAmount(),
-                                "germany", // The country where the service is deliverd. Currently hard coded but can be read from the device document
-                                paymentIntent.getCurrency(),
-                                "BBQ BUTLER Miete"));
+                    monoSink.success(
+                            new Payment(
+                                    paymentIntent.getId(),
+                                    paymentIntent.getClientSecret(),
+                                    paymentMethodId,
+                                    paymentIntent.getAmount(),
+                                    "germany", // The country where the service is deliverd. Currently hard coded but can be read from the device document
+                                    paymentIntent.getCurrency(),
+                                    "BBQ BUTLER Miete"));
+                }
             } catch (StripeException e) {
                 monoSink.error(e);
             }

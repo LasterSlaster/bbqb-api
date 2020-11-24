@@ -2,6 +2,7 @@ package de.bbqb.backend.gcp.firestore;
 
 import com.google.cloud.Timestamp;
 import de.bbqb.backend.api.model.entity.Booking;
+import de.bbqb.backend.api.model.entity.Timeslot;
 import de.bbqb.backend.api.model.service.BookingService;
 import de.bbqb.backend.gcp.firestore.document.BookingDoc;
 import org.springframework.stereotype.Service;
@@ -28,9 +29,10 @@ public class FirestoreBookingService implements BookingService {
         return this.repo.findAllByDeviceId(deviceId).map(this::fromBookingDocToBooking);
     }
 
-    public Mono<Booking> createBooking(String paymentIntentId, String deviceId, String userId, Integer timeslot) {
+    public Mono<Booking> createBooking(String paymentIntentId, String deviceId, String userId, Timeslot timeslot) {
         // TODO: Validate timeslot
-        return repo.save(new BookingDoc(null, paymentIntentId, deviceId, userId, "pending", Timestamp.now(), timeslot)).map(this::fromBookingDocToBooking);
+        return repo.save(new BookingDoc(null, paymentIntentId, deviceId, userId, "pending", Timestamp.now(), timeslot.getTime()))
+                .map(this::fromBookingDocToBooking);
     }
 
     public Mono<Booking> updateBooking(Booking booking) {

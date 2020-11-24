@@ -187,10 +187,18 @@ public class ApiController {
      */
     @PostMapping("/bookings")
     public Mono<ResponseEntity<Payment>> postBookings(@AuthenticationPrincipal Authentication sub, @RequestBody BookingRequest request) {
-        // TODO: 1. Create and return payment intent 2. Create "pending session" with paymentIntentId and deviceId 3. wait for payment confirmation in webhook 4. unlock device and create/update grill session
-        // TODO: Validate request(Check if timeslot and deviceId is valid)
+        // Parse timeslot
+        Timeslot timeslot;
+        switch (request.getTimeslot()) {
+            case 45:
+                timeslot = Timeslot.FOURTY_FIVE;
+                break;
+            default:
+                return Mono.just(ResponseEntity.badRequest().build());
+        }
         if (request.getDeviceId() != null) {
-            return userService.readUser(sub.getName())
+            return deviceService.readDevice(request.getDeviceId())
+                    .flatMap(device -> userService.readUser(sub.getName()))
                     .flatMap(user -> stripeService.createCardPaymentIntent(
                             user,
                             100L,
@@ -200,9 +208,10 @@ public class ApiController {
                             pair.getFirst().getId(),
                             request.getDeviceId(),
                             pair.getSecond().getId(),
-                            request.getTimeslot())
+                            timeslot)
                             .map(booking -> pair.getFirst())) // TODO: evaluate what kind of resource to return
-                    .map(ResponseEntity::ok);
+                    .map(ResponseEntity::ok)
+                    .defaultIfEmpty(ResponseEntity.unprocessableEntity().build());
         } else {
             return Mono.just(ResponseEntity.unprocessableEntity().build());
         }

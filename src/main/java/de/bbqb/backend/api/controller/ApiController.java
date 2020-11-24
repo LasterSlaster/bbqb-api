@@ -217,10 +217,11 @@ public class ApiController {
         }
     }
 
-    // TODO: Endpoint to retrieve all grill sessions for a specific user
-
     /**
      * Endpoint to retrieve all bookings for the current user
+     *
+     * @param sub
+     * @return
      */
     @GetMapping("/bookings")
     public Flux<Booking> getBookings(@AuthenticationPrincipal Authentication sub) {
@@ -229,16 +230,20 @@ public class ApiController {
 
 
     /**
-     * Endpoint to retrieve all bookings for the current user
+     * Endpoint to retrieve a specific booking
+     *
+     * @param sub
+     * @param id
+     * @return
      */
-    //@GetMapping("/bookings/{id}")
-    //public ResponseEntity<Flux<Booking>> getBookings(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String id) {
-    //    return bookingService.findBooking(id)
-    //            .filter(booking -> booking.getUserId().contentEquals(sub.getName()))
-    //            .map(ResponseEntity::ok)
-    //            //.switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
-    //            ;
-    //}
+    @GetMapping("/bookings/{id}")
+    public Mono<ResponseEntity<Booking>> getBookings(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String id) {
+        return bookingService.findBooking(id)
+                .filter(booking -> booking.getUserId().contentEquals(sub.getName()))
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build())
+                ;
+    }
 
     /**
      * Retrieve all devices.

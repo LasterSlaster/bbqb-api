@@ -211,7 +211,9 @@ public class ApiController {
                             timeslot)
                             .map(booking -> pair.getFirst())) // TODO: evaluate what kind of resource to return
                     .map(ResponseEntity::ok)
-                    .defaultIfEmpty(ResponseEntity.unprocessableEntity().build());
+                    .onErrorResume(e -> Mono.just(ResponseEntity.badRequest().build()))
+                    .defaultIfEmpty(ResponseEntity.unprocessableEntity().build())
+                    ;
         } else {
             return Mono.just(ResponseEntity.unprocessableEntity().build());
         }

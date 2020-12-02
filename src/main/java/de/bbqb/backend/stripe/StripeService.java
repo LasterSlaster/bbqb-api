@@ -125,6 +125,8 @@ public class StripeService implements CustomerService {
                                     "germany", // The country where the service is deliverd. Currently hard coded but can be read from the device document
                                     paymentIntent.getCurrency(),
                                     "BBQ BUTLER Miete"));
+                } else {
+                    monoSink.error(new Exception("No payment methods found for user " + user.getId()));
                 }
             } catch (StripeException e) {
                 monoSink.error(e);

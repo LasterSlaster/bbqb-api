@@ -104,7 +104,7 @@ public class StripeService implements CustomerService {
                 PaymentMethodCollection paymentMethods = PaymentMethod.list(params);
 
                 // Check if the paymentMethodId is valid for the selected user
-                if (paymentMethods.getData().stream().anyMatch(paymentMethod -> paymentMethod.getId() == paymentMethodId)) {
+                if (paymentMethods.getData().stream().anyMatch(paymentMethod -> paymentMethod.getId().contentEquals(paymentMethodId))) {
                     PaymentIntentCreateParams paymentIntentParams = PaymentIntentCreateParams.builder()
                             .setCustomer(user.getStripeCustomerId())
                             .setCurrency("eur")

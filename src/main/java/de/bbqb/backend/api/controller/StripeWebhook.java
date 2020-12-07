@@ -11,6 +11,7 @@ import de.bbqb.backend.api.model.entity.Booking;
 import de.bbqb.backend.api.model.entity.Device;
 import de.bbqb.backend.api.model.service.BookingService;
 import de.bbqb.backend.api.model.service.DeviceService;
+import de.bbqb.backend.gcp.firestore.document.BookingDoc;
 import de.bbqb.backend.stripe.StripeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,7 +124,16 @@ public class StripeWebhook {
                 LOGGER.info("Received event of type payment_intent.succeeded");
                 PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
                 // TODO: Query the db for a pending grill session document with this paymentIntent. If found set the grill session to active/create one and send the open signal to the bbqb-device
-                this.bookingService.findBooking(paymentIntent.getId())
+                this.bookingService.findBookingByPaymentIntentId(paymentIntent.getId())
+                        .map(booking -> new Booking(
+                                booking.getId(),
+                                booking.getPaymentIntentId(),
+                                booking.getDeviceId(),
+                                booking.getUserId(),
+                                "payed",
+                                booking.getTimestamp(),
+                                booking.getPayment(),
+                                booking.getTimeslot()))
                         .flatMap(bookingService::updateBooking)
                         .flatMap(booking ->
                                 this.deviceService.openDevice(booking.getDeviceId())

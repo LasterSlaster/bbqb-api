@@ -10,5 +10,6 @@ public interface BookingService {
     Mono<Booking> findBooking(String bookingId);
     Flux<Booking> findAllBookingsByUserId(String userId);
     Flux<Booking> findAllBookingsByDeviceId(String deviceId);
+    Mono<Booking> findBookingByPaymentIntentId(String deviceId);
     Mono<Booking> updateBooking(Booking booking);
 }

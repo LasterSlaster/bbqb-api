@@ -1,6 +1,7 @@
 package de.bbqb.backend.gcp.firestore;
 
 import com.google.cloud.Timestamp;
+import com.google.cloud.firestore.Firestore;
 import de.bbqb.backend.api.model.entity.Booking;
 import de.bbqb.backend.api.model.entity.Timeslot;
 import de.bbqb.backend.api.model.service.BookingService;
@@ -12,9 +13,11 @@ import reactor.core.publisher.Mono;
 @Service
 public class FirestoreBookingService implements BookingService {
     private BookingRepo repo;
+    private Firestore firestore;
 
-    public FirestoreBookingService(BookingRepo repo) {
+    public FirestoreBookingService(BookingRepo repo, Firestore firestore) {
         this.repo = repo;
+        this.firestore = firestore;
     }
 
     public Mono<Booking> findBooking(String bookingId) {
@@ -29,9 +32,14 @@ public class FirestoreBookingService implements BookingService {
         return this.repo.findAllByDeviceId(deviceId).map(this::fromBookingDocToBooking);
     }
 
+    public Mono<Booking> findBookingByPaymentIntentId(String paymentIntentId) {
+        return this.repo.findByPaymentIntentId(paymentIntentId).map(this::fromBookingDocToBooking);
+    }
+
     public Mono<Booking> createBooking(String paymentIntentId, String deviceId, String userId, Timeslot timeslot) {
         // TODO: Validate timeslot
-        return repo.save(new BookingDoc(null, paymentIntentId, deviceId, userId, "pending", Timestamp.now(), timeslot.getTime()))
+        String id = firestore.collection("bookings").document().getId();
+        return repo.save(new BookingDoc(id, paymentIntentId, deviceId, userId, "pending", Timestamp.now(), timeslot.getTime()))
                 .map(this::fromBookingDocToBooking);
     }
 
@@ -43,7 +51,7 @@ public class FirestoreBookingService implements BookingService {
     }
 
     private BookingDoc fromBookingToBookingDoc(Booking booking) {
-        return new BookingDoc("", booking.getPaymentIntentId(), booking.getDeviceId(), booking.getUserId(), booking.getStatus(), Timestamp.of(booking.getTimestamp()), booking.getTimeslot());
+        return new BookingDoc(booking.getId(), booking.getPaymentIntentId(), booking.getDeviceId(), booking.getUserId(), booking.getStatus(), Timestamp.of(booking.getTimestamp()), booking.getTimeslot());
     }
     private Booking fromBookingDocToBooking(BookingDoc bookingDoc) {
         return new Booking(bookingDoc.getId(), bookingDoc.getPaymentIntentId(), bookingDoc.getDeviceId(), bookingDoc.getUserId(), bookingDoc.getStatus(), bookingDoc.getTimestamp().toDate(), null, bookingDoc.getTimeslot());

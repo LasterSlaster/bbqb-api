@@ -126,7 +126,7 @@ public class StripeService implements CustomerService {
                                     paymentIntent.getCurrency(),
                                     "BBQ BUTLER Miete"));
                 } else {
-                    monoSink.error(new Exception("No payment methods found for user " + user.getId()));
+                    monoSink.error(new Exception("No payment method with id " + paymentMethodId + " found for user " + user.getId()));
                 }
             } catch (StripeException e) {
                 monoSink.error(e);

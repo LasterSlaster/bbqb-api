@@ -9,11 +9,12 @@ import java.util.Date;
 @AllArgsConstructor
 public class Booking {
     private String id;
-    private String paymentIntentId;
+    private String paymentIntentId; // TODO: Remove this field. Redundant, also in payment as id
     private String deviceId;
     private String userId;
     private String status;
-    private Date timestamp;
+    private Date requestTime;
+    private Date sessionStart;
     private Payment payment;
     private Integer timeslot;
 }

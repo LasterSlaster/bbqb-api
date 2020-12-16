@@ -131,7 +131,8 @@ public class StripeWebhook {
                                 booking.getDeviceId(),
                                 booking.getUserId(),
                                 "payed",
-                                booking.getTimestamp(),
+                                booking.getRequestTime(),
+                                booking.getSessionStart(),
                                 booking.getPayment(),
                                 booking.getTimeslot()))
                         .flatMap(bookingService::updateBooking)
@@ -144,8 +145,23 @@ public class StripeWebhook {
                 break;
             case "payment_intent.payment_failed":
                 LOGGER.info("Received event of type payment_intent.payment_failed");
-                //PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
                 // TODO: Query the db for a pending grill session document with this paymentIntent and if found set it to failed/delete it.
+                PaymentIntent failedPaymentIntent = (PaymentIntent) stripeObject;
+                this.bookingService.findBookingByPaymentIntentId(failedPaymentIntent.getId())
+                        .map(booking -> new Booking(
+                                booking.getId(),
+                                booking.getPaymentIntentId(),
+                                booking.getDeviceId(),
+                                booking.getUserId(),
+                                "payment_failed",
+                                booking.getRequestTime(),
+                                booking.getSessionStart(),
+                                booking.getPayment(),
+                                booking.getTimeslot()))
+                        .flatMap(bookingService::updateBooking)
+                        .flatMap(booking -> deviceService.readDevice(booking.getDeviceId()))
+                        .flatMap(device -> deviceService.updateDevice(new Device(device.getId(),device.getDeviceId(),device.getNumber(),device.getPublishTime(), false, device.getLocked(), device.getClosed(), device.getWifiSignal(), device.getIsTemperaturePlate1(),device.getIsTemperaturePlate2(),device.getSetTemperaturePlate1(),device.getSetTemperaturePlate2(),device.getLocation(),device.getAddress())))
+                        .subscribe();
                 break;
             default:
                 LOGGER.warn("Unhandled event type: " + event.getType());

@@ -30,6 +30,7 @@ public class DeviceDoc {
     private String deviceId;
     private String number;
     private Timestamp publishTime;
+    private Boolean blocked;
     private Boolean locked;
     private Boolean closed;
     private Double wifiSignal;

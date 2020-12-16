@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Date;
+
 @Service
 public class FirestoreBookingService implements BookingService {
     private BookingRepo repo;
@@ -39,7 +41,7 @@ public class FirestoreBookingService implements BookingService {
     public Mono<Booking> createBooking(String paymentIntentId, String deviceId, String userId, Timeslot timeslot) {
         // TODO: Validate timeslot
         String id = firestore.collection("bookings").document().getId();
-        return repo.save(new BookingDoc(id, paymentIntentId, deviceId, userId, "pending", Timestamp.now(), timeslot.getTime()))
+        return repo.save(new BookingDoc(id, paymentIntentId, deviceId, userId, "pending", Timestamp.now(), timeslot.getTime(), null))
                 .map(this::fromBookingDocToBooking);
     }
 
@@ -51,9 +53,9 @@ public class FirestoreBookingService implements BookingService {
     }
 
     private BookingDoc fromBookingToBookingDoc(Booking booking) {
-        return new BookingDoc(booking.getId(), booking.getPaymentIntentId(), booking.getDeviceId(), booking.getUserId(), booking.getStatus(), Timestamp.of(booking.getTimestamp()), booking.getTimeslot());
+        return new BookingDoc(booking.getId(), booking.getPaymentIntentId(), booking.getDeviceId(), booking.getUserId(), booking.getStatus(), Timestamp.of(booking.getRequestTime()),booking.getTimeslot(), Timestamp.of(booking.getSessionStart()));
     }
     private Booking fromBookingDocToBooking(BookingDoc bookingDoc) {
-        return new Booking(bookingDoc.getId(), bookingDoc.getPaymentIntentId(), bookingDoc.getDeviceId(), bookingDoc.getUserId(), bookingDoc.getStatus(), bookingDoc.getTimestamp().toDate(), null, bookingDoc.getTimeslot());
+        return new Booking(bookingDoc.getId(), bookingDoc.getPaymentIntentId(), bookingDoc.getDeviceId(), bookingDoc.getUserId(), bookingDoc.getStatus(), (bookingDoc.getRequestTime() == null ? null : bookingDoc.getRequestTime().toDate()), (bookingDoc.getSessionStart() == null ? null :bookingDoc.getSessionStart().toDate()), null, bookingDoc.getTimeslot());
     }
 }

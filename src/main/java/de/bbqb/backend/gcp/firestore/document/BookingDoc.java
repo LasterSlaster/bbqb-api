@@ -27,6 +27,7 @@ public class BookingDoc {
     // TODO: UserId: store reference here
     private String userId;
     private String status;
-    private Timestamp timestamp;
+    private Timestamp requestTime;
+    private Timestamp sessionStart;
     private Integer timeslot;
 }

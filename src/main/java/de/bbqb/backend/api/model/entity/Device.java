@@ -19,11 +19,16 @@ public class Device {
     private String number;
     // Milliseconds since January 1, 1970, 00:00:00 UTC
     private Long publishTime; // TODO: Change to seconds since UNIX epoche
+    private Boolean blocked;
     private Boolean locked; // TODO: Change to Enum?
     private Boolean closed;
     private Double wifiSignal;
-    private Double temperaturePlate1;
-    private Double temperaturePlate2;
+
+
+    private Double isTemperaturePlate1;
+    private Double isTemperaturePlate2;
+    private Double setTemperaturePlate1;
+    private Double setTemperaturePlate2;
     private Location location;
     private Address address;
 

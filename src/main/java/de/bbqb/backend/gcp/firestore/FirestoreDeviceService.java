@@ -230,7 +230,7 @@ public class FirestoreDeviceService implements DeviceService {
                 deviceDoc.getStreet(), deviceDoc.getHouseNumber(), deviceDoc.getAddressName());
         return new Device(deviceDoc.getId(), deviceDoc.getDeviceId(), deviceDoc.getNumber(),
                 convertToMilliseconds(deviceDoc.getPublishTime().getSeconds(), (long) deviceDoc.getPublishTime().getNanos()),
-                deviceDoc.getLocked(), deviceDoc.getClosed(), deviceDoc.getWifiSignal(), deviceDoc.getIsTemperaturePlate1(), deviceDoc.getIsTemperaturePlate2(), location, address);
+                deviceDoc.getBlocked(), deviceDoc.getLocked(), deviceDoc.getClosed(), deviceDoc.getWifiSignal(), deviceDoc.getIsTemperaturePlate1(), deviceDoc.getIsTemperaturePlate2(), deviceDoc.getSetTemperaturePlate1(), deviceDoc.getSetTemperaturePlate2(), location, address);
     }
 
     /**

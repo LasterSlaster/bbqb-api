@@ -33,6 +33,6 @@ public class Device {
     private Address address;
 
     public Device(String id, Device device) {
-        this(id, device.getDeviceId(), device.getNumber(), device.getPublishTime(), device.getLocked(), device.getClosed(), device.getWifiSignal(), device.getTemperaturePlate1(), device.getTemperaturePlate2(), device.getLocation(), device.getAddress());
+        this(id, device.getDeviceId(), device.getNumber(), device.getPublishTime(), device.getBlocked(), device.getLocked(), device.getClosed(), device.getWifiSignal(), device.getIsTemperaturePlate1(), device.getIsTemperaturePlate2(), device.getSetTemperaturePlate1(), device.getSetTemperaturePlate2(), device.getLocation(), device.getAddress());
     }
 }

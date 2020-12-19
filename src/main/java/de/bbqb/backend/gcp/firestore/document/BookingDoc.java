@@ -28,6 +28,8 @@ public class BookingDoc {
     private String userId;
     private String status;
     private Timestamp requestTime;
-    private Timestamp sessionStart;
     private Integer timeslot;
+    private Timestamp sessionStart;
+
+
 }

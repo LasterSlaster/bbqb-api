@@ -125,10 +125,10 @@ public class ApiController {
     public Mono<ResponseEntity<User>> getUser(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String userId) {
         if (sub.getName().equals(userId)) {
             return userService.readUser(userId)
-                    .flatMap(user -> this.bookingService.findAllBookingsByUserId(user.getId()).next().map(booking -> Pair.of(user, booking)).defaultIfEmpty(Pair.of(user, null))) // TODO: Find last booking session
+                    .flatMap(user -> this.bookingService.findAllBookingsByUserId(user.getId()).next().map(booking -> Pair.of(user, booking)).defaultIfEmpty(Pair.of(user, new Booking()))) // TODO: Find last booking session
                     .map(pair -> {
                         ResponseEntity.BodyBuilder response = ResponseEntity.ok();
-                        if (pair.getSecond() != null) {
+                        if (!pair.getSecond().equals(new Booking()) ) {
                             response.header("Link", "</bookings/" + pair.getSecond().getId() + ">; rel=\"currentBooking\"");
                         }
                         return response.body(pair.getFirst());

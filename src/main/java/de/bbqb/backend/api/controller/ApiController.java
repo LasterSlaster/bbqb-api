@@ -19,6 +19,7 @@ import reactor.retry.Repeat;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -125,7 +126,7 @@ public class ApiController {
     public Mono<ResponseEntity<User>> getUser(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String userId) {
         if (sub.getName().equals(userId)) {
             return userService.readUser(userId)
-                    .flatMap(user -> this.bookingService.findAllBookingsByUserId(user.getId()).next().map(booking -> new User(user.getId(), user.getStripeCustomerId(), booking.getId(), user.getFirstName(), user.getLastName(), user.getEmail())).defaultIfEmpty(user)) // TODO: Find last booking session
+                    .flatMap(user -> this.bookingService.findAllBookingsByUserId(user.getId()).sort(Comparator.comparing(Booking::getRequestTime, Comparator.reverseOrder())).next().map(booking -> new User(user.getId(), user.getStripeCustomerId(), booking.getId(), user.getFirstName(), user.getLastName(), user.getEmail())).defaultIfEmpty(user)) // TODO: Find last booking session
                     .map(user -> {
                         ResponseEntity.BodyBuilder response = ResponseEntity.ok();
                         if (user.getLastBookingId() != null) {

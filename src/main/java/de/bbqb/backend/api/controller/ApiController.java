@@ -125,13 +125,13 @@ public class ApiController {
     public Mono<ResponseEntity<User>> getUser(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String userId) {
         if (sub.getName().equals(userId)) {
             return userService.readUser(userId)
-                    .flatMap(user -> this.bookingService.findAllBookingsByUserId(user.getId()).next().map(booking -> Pair.of(user, booking)).defaultIfEmpty(Pair.of(user, new Booking()))) // TODO: Find last booking session
-                    .map(pair -> {
+                    .flatMap(user -> this.bookingService.findAllBookingsByUserId(user.getId()).next().map(booking -> new User(user.getId(), user.getStripeCustomerId(), booking.getId(), user.getFirstName(), user.getLastName(), user.getEmail())).defaultIfEmpty(user)) // TODO: Find last booking session
+                    .map(user -> {
                         ResponseEntity.BodyBuilder response = ResponseEntity.ok();
-                        if (!pair.getSecond().equals(new Booking()) ) {
-                            response.header("Link", "</bookings/" + pair.getSecond().getId() + ">; rel=\"currentBooking\"");
+                        if (user.getLastBookingId() != null) {
+                            response.header("Link", "</bookings/" + user.getId() + ">; rel=\"currentBooking\"");
                         }
-                        return response.body(pair.getFirst());
+                        return response.body(user);
                     })
                     .defaultIfEmpty(ResponseEntity.notFound().build());
         } else {

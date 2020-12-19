@@ -12,9 +12,10 @@ import lombok.Getter;
 @AllArgsConstructor
 public class User {
 
-    private final String id;
-    private final String stripeCustomerId;
-    private final String firstName;
-    private final String lastName;
-    private final String email;
+    private  String id;
+    private  String stripeCustomerId;
+    private  String lastBookingId;
+    private  String firstName;
+    private  String lastName;
+    private  String email;
 }

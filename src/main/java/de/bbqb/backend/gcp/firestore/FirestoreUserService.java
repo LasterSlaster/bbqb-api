@@ -71,6 +71,6 @@ public class FirestoreUserService implements UserService {
     }
 
     private User mapFromUserDoc(UserDoc userDoc) {
-        return new User(userDoc.getId(), userDoc.getStripeCustomerId(), userDoc.getFirstName(), userDoc.getLastName(), userDoc.getEmail());
+        return new User(userDoc.getId(), userDoc.getStripeCustomerId(), null, userDoc.getFirstName(), userDoc.getLastName(), userDoc.getEmail());
     }
 }

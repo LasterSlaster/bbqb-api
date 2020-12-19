@@ -36,7 +36,7 @@ public class StripeService implements CustomerService {
             User newCustomer = null;
             try {
                 Customer stripeCustomer = Customer.create(customerParam); // Blocking request
-                newCustomer = new User(user.getId(), stripeCustomer.getId(), user.getFirstName(), user.getLastName(), user.getEmail());
+                newCustomer = new User(user.getId(), stripeCustomer.getId(), null, user.getFirstName(), user.getLastName(), user.getEmail());
                 userMonoSink.success(newCustomer);
             } catch (StripeException e) {
                 e.printStackTrace();

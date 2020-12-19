@@ -358,39 +358,10 @@ public class ApiController {
             return deviceService
                     .updateDevice(device)
                     // TODO: Check if there is a active booking for this device and user
-                    .flatMap(updatedDevice -> this.checkToOpenDevice(sub.getName(), device, updatedDevice))
                     .map(ResponseEntity.created(builder.build().toUri())::body) // TODO: Think about returning 200/204 instead
                     .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
         } else {
             return Mono.just(ResponseEntity.unprocessableEntity().build()); // TODO: Create message "id is missing" or "not equal to deviceId"
-        }
-    }
-
-    private Mono<Device> checkToOpenDevice(String userId, Device device, Device updatedDevice) {
-        // TODO: Think about moving this into deviceService
-        if (device.getLocked() != null && device.getLocked() == false) {
-            if (device.getDeviceId() != null) {
-                return bookingService.findAllBookingsByUserId(userId)
-                        .filter(booking -> booking.getDeviceId().contentEquals(device.getDeviceId())) // TODO: Also evaluate if booking/session has not already successfully opened the device, yet(By status?)
-                        .switchIfEmpty(Mono.error(new Exception("User has no successful booking for this device"))) // TODO: Check if filtering ever returns empty mono
-                        .flatMap(booking -> deviceService.openDevice(device.getDeviceId()))
-                        .then(deviceService.readDevice(device.getId()))
-                        .switchIfEmpty(Mono.error(new Exception())) // TODO: Implement better exception
-                        // Repeatedly fetch the device the signal was send to until it is unlocked. 5 times with 1 second delays
-                        .filter(pendingDevice -> pendingDevice.getLocked() == false)
-                        .repeatWhenEmpty(Repeat.times(10).fixedBackoff(Duration.ofSeconds(1)))
-                        .doOnSuccess(result -> {
-                            // If the device is still locked after repeats throw exception
-                            if (result == null) {
-                                throw Exceptions.propagate(new Exception());
-                            }
-                        });
-            } else {
-                return Mono.error(new Exception()); // TODO: Implement better exception
-            }
-        } else {
-            // Continue with updatedDevice if it doesn't have to be unlocked
-            return Mono.just(updatedDevice);
         }
     }
 }

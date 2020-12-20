@@ -53,7 +53,7 @@ public class FirestoreBookingService implements BookingService {
     }
 
     private BookingDoc fromBookingToBookingDoc(Booking booking) {
-        return new BookingDoc(booking.getId(), booking.getPaymentIntentId(), booking.getDeviceId(), booking.getUserId(), booking.getStatus(), Timestamp.of(booking.getRequestTime()),booking.getTimeslot(), Timestamp.of(booking.getSessionStart()));
+        return new BookingDoc(booking.getId(), booking.getPaymentIntentId(), booking.getDeviceId(), booking.getUserId(), booking.getStatus(), booking.getRequestTime() != null ? Timestamp.of(booking.getRequestTime()) : null, booking.getTimeslot(), booking.getSessionStart() != null ? Timestamp.of(booking.getSessionStart()) : null);
     }
     private Booking fromBookingDocToBooking(BookingDoc bookingDoc) {
         return new Booking(bookingDoc.getId(), bookingDoc.getPaymentIntentId(), bookingDoc.getDeviceId(), bookingDoc.getUserId(), bookingDoc.getStatus(), (bookingDoc.getRequestTime() == null ? null : bookingDoc.getRequestTime().toDate()), (bookingDoc.getSessionStart() == null ? null :bookingDoc.getSessionStart().toDate()), null, bookingDoc.getTimeslot());

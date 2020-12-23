@@ -136,7 +136,7 @@ public class StripeWebhook {
                                 booking.getPayment(),
                                 booking.getTimeslot()))
                         .flatMap(bookingService::updateBooking)
-                        .flatMap(booking -> deviceService.readDevice(booking.getDeviceId()))
+                        .flatMap(booking -> this.deviceService.readDevice(booking.getDeviceId()))
                         .flatMap(device ->
                                 this.deviceService.openDevice(device.getDeviceId())
                                         .retry(3)

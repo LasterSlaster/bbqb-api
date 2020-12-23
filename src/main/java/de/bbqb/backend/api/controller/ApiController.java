@@ -212,8 +212,6 @@ public class ApiController {
                     .flatMap(device -> {
                         if (device.getBlocked()) {
                             return Mono.error(new Exception("Device already blocked"));
-                        } else if(device.getLocked()) {
-                            return Mono.error(new Exception("Device already locked"));
                         } else {
                             return Mono.just(device);
                         }

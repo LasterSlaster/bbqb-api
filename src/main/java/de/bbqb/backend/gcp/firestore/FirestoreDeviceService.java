@@ -131,6 +131,7 @@ public class FirestoreDeviceService implements DeviceService {
         DeviceDoc deviceDoc = new DeviceDoc();
         deviceDoc.setId(id);
         deviceDoc.setLocked(true);
+        deviceDoc.setBlocked(false);
         deviceDoc.setPublishTime(Timestamp.now());
         // TODO: Set lockSTatus, drawerStatus, timestamp, temp, wifi defaults???
         return deviceRepo.save(mapToDeviceDoc(device, deviceDoc)).map(this::mapFromDeviceDoc);

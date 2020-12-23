@@ -192,6 +192,9 @@ public class FirestoreDeviceService implements DeviceService {
         if (device.getNumber() != null) {
             deviceDoc.setNumber(device.getNumber());
         }
+        if (device.getBlocked() != null) {
+            deviceDoc.setBlocked(device.getBlocked());
+        }
         if (device.getAddress() != null) {
             if (device.getAddress().getName() != null) {
                 deviceDoc.setAddressName(device.getAddress().getName());

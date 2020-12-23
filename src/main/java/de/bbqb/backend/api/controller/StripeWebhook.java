@@ -136,10 +136,11 @@ public class StripeWebhook {
                                 booking.getPayment(),
                                 booking.getTimeslot()))
                         .flatMap(bookingService::updateBooking)
-                        .flatMap(booking ->
-                                this.deviceService.openDevice(booking.getDeviceId())
+                        .flatMap(booking -> deviceService.readDevice(booking.getDeviceId()))
+                        .flatMap(device ->
+                                this.deviceService.openDevice(device.getDeviceId())
                                         .retry(3)
-                                        .doOnError(e -> LOGGER.warn("Unable to open device " + booking.getDeviceId())))
+                                        .doOnError(e -> LOGGER.warn("Unable to open device " + device.getDeviceId())))
                         .subscribe()
                 ;
                 break;

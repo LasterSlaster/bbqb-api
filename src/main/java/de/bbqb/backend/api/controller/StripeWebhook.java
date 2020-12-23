@@ -13,6 +13,7 @@ import de.bbqb.backend.api.model.service.BookingService;
 import de.bbqb.backend.api.model.service.DeviceService;
 import de.bbqb.backend.gcp.firestore.document.BookingDoc;
 import de.bbqb.backend.stripe.StripeService;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -136,11 +137,11 @@ public class StripeWebhook {
                                 booking.getPayment(),
                                 booking.getTimeslot()))
                         .flatMap(bookingService::updateBooking)
-                        .flatMap(booking -> this.deviceService.readDevice(booking.getDeviceId()))
-                        .flatMap(device ->
-                                this.deviceService.openDevice(device.getDeviceId())
+                        .flatMap(booking -> this.deviceService.readDevice(booking.getDeviceId()).map(device -> Pair.of(booking, device)))
+                        .flatMap(pair ->
+                                this.deviceService.openDevice(pair.getRight().getDeviceId(), pair.getLeft().getTimeslot())
                                         .retry(3)
-                                        .doOnError(e -> LOGGER.warn("Unable to open device " + device.getDeviceId())))
+                                        .doOnError(e -> LOGGER.warn("Unable to open device " + pair.getRight().getDeviceId())))
                         .subscribe()
                 ;
                 break;

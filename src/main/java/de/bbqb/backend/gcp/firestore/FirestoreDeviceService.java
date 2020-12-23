@@ -74,7 +74,7 @@ public class FirestoreDeviceService implements DeviceService {
      * @return true if signal was send successfully to device otherwise false
      */
     @Override
-    public Mono<Void> openDevice(String deviceId) {
+    public Mono<Void> openDevice(String deviceId, Integer timeslot) {
         return Mono.fromCallable(() -> {
             final String devicePath = String.format("projects/%s/locations/%s/registries/%s/devices/%s", gcpProjectId,
                     cloudRegion, registryName, deviceId);
@@ -94,7 +94,8 @@ public class FirestoreDeviceService implements DeviceService {
 
             SendCommandToDeviceRequest req = new SendCommandToDeviceRequest();
             Base64.Encoder encoder = Base64.getEncoder();
-            String encPayload = encoder.encodeToString(this.openDeviceMessage.getBytes(StandardCharsets.UTF_8.name()));
+            String payload = this.openDeviceMessage + timeslot + ";";
+            String encPayload = encoder.encodeToString(payload.getBytes(StandardCharsets.UTF_8.name()));
             req.setBinaryData(encPayload);
             LOGGER.info("Sending command to " + devicePath);
 

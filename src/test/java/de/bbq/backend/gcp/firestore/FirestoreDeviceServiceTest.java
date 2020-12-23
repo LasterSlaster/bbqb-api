@@ -99,7 +99,7 @@ public class FirestoreDeviceServiceTest {
         // given
 
         // when
-        this.sut.openDevice(deviceId);
+        this.sut.openDevice(deviceId ,20);
 
         // then
     }

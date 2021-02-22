@@ -142,6 +142,12 @@ public class StripeWebhook {
                                 this.deviceService.openDevice(pair.getRight().getDeviceId(), pair.getLeft().getTimeslot())
                                         .retry(3)
                                         .doOnError(e -> LOGGER.warn("Unable to open device " + pair.getRight().getDeviceId())))
+                        .doOnSuccess(data -> {
+                            if (data == null) {
+                                LOGGER.warn("No booking found for successfull payment " + paymentIntent.getId());
+                            }
+                        })
+                        .doOnError(e -> LOGGER.error("Error while processing successfull paymentintent"))
                         .subscribe()
                 ;
                 break;

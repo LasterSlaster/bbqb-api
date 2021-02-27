@@ -1,4 +1,4 @@
-package de.bbqb.backend.api.controller;
+package de.bbqb.backend.api.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

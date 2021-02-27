@@ -23,8 +23,6 @@ public class Device {
     private Boolean locked; // TODO: Change to Enum?
     private Boolean closed;
     private Double wifiSignal;
-
-
     private Double isTemperaturePlate1;
     private Double isTemperaturePlate2;
     private Double setTemperaturePlate1;

@@ -1,11 +1,11 @@
 package de.bbqb.backend.api.model.entity;
 
 public enum Timeslot {
-   FOURTY_FIVE(45, 800L),
+   FORTY_FIVE(45, 800L),
    NINETY(90, 1300L);
 
    private Integer time;
-   private Long cost; // TODO: Extract cost from enum and move them to an external propertys file or something
+   private Long cost; // TODO: Extract cost from enum and move them to an external properties file or something
 
     /**
      *

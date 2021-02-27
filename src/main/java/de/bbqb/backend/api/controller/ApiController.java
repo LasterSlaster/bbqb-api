@@ -12,13 +12,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.retry.Repeat;
 
 import java.net.URI;
-import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 
@@ -57,24 +54,26 @@ public class ApiController {
     }
 
     /**
-     * Retrieve all cards of a specific user.
+     * Retrieve all cards for a specific user.
      *
-     * @return The list of cards of this user
+     * @return The list of cards for this user
      */
     @GetMapping("/cards")
     public Mono<ResponseEntity<List<Card>>> getCards(@AuthenticationPrincipal Authentication sub) {
+        // TODO: Extend stripeService to do user validation
         return userService.readUser(sub.getName())
                 .flatMap(stripeService::readCards)
                 .map(ResponseEntity::ok);
     }
 
     /**
-     * Delete a specific card of a user
+     * Delete a specific card for a user
      *
      * @return The deleted card
      */
     @DeleteMapping("/cards/{id}")
     public Mono<ResponseEntity<Card>> deleteCard(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String cardId) {
+        // TODO: Extend stripeService to do user validation
         return userService.readUser(sub.getName())
                 .flatMap(user -> stripeService.deleteCard(cardId, user))
                 .map(ResponseEntity::ok)
@@ -88,6 +87,7 @@ public class ApiController {
      */
     @PostMapping("/cards")
     public Mono<ResponseEntity<Card>> postCardSetup(@AuthenticationPrincipal Authentication sub) {
+        // TODO: Extend stripeService to do user validation
         return userService.readUser(sub.getName())
                 .flatMap(stripeService::createSetupCardIntent)
                 .map(ResponseEntity::ok);
@@ -100,6 +100,7 @@ public class ApiController {
      */
     @PostMapping("/payments")
     public Mono<ResponseEntity<Payment>> postCardPaymentSetup(@AuthenticationPrincipal Authentication sub, BookingRequest request) {
+        // TODO: Extend bookingService to do user validation
         return userService.readUser(sub.getName())
                 .flatMap(user -> stripeService.createCardPaymentIntent(user, 100L, request.getPaymentMethodId())) // TODO: Check how to retrieve the price
                 .map(ResponseEntity::ok);
@@ -125,6 +126,7 @@ public class ApiController {
     @GetMapping("/users/{id}")
     public Mono<ResponseEntity<User>> getUser(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String userId) {
         if (sub.getName().equals(userId)) {
+            // TODO: Extend bookingService to do user validation
             return userService.readUser(userId)
                     .flatMap(user -> this.bookingService.findAllBookingsByUserId(user.getId()).sort(Comparator.comparing(Booking::getRequestTime, Comparator.reverseOrder())).next().map(booking -> new User(user.getId(), user.getStripeCustomerId(), booking.getId(), user.getFirstName(), user.getLastName(), user.getEmail())).defaultIfEmpty(user)) // TODO: Find last booking session
                     .map(user -> {
@@ -150,6 +152,7 @@ public class ApiController {
     public Mono<ResponseEntity<Object>> postUser(@AuthenticationPrincipal Authentication sub, @RequestBody User user) {
         if (sub.getName().equals(user.getId())) {
             ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
+            // TODO: Move evaluation if user already exists to Service layer
             return userService.readUser(user.getId())
                     .flatMap(alreadyExistingUser -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build())) // User already exists
                     .switchIfEmpty(
@@ -163,7 +166,7 @@ public class ApiController {
     }
 
     /**
-     * Update the information of a user.
+     * Update user information.
      * TODO: Currently not idempotent! Because it does not use the id from the request but creates a new one
      *
      * @param id:   The ID of the user to be updated. Must be identical to the id field in the user object in the request body.
@@ -188,18 +191,19 @@ public class ApiController {
     }
 
     /**
-     * Send an open device signal to a device.
+	 * Create a booking for a BBQB device and lock the device.
      *
      * @param request: A BookingRequest
      * @return The pending Booking object including the payment information with paymentIntentId and client secret.
      */
     @PostMapping("/bookings")
     public Mono<ResponseEntity<Booking>> postBookings(@AuthenticationPrincipal Authentication sub, @RequestBody BookingRequest request) {
+        // TODO: Refactor this code block and extract business logic to service layer
         // Parse timeslot
         Timeslot timeslot;
         switch (request.getTimeslot()) {
             case 45:
-                timeslot = Timeslot.FOURTY_FIVE;
+                timeslot = Timeslot.FORTY_FIVE;
                 break;
             case 90:
                 timeslot = Timeslot.NINETY;
@@ -208,16 +212,19 @@ public class ApiController {
                 return Mono.just(ResponseEntity.badRequest().build());
         }
         if (request.getDeviceId() != null) {
+            // TODO: Check if database integrity stays consistent. Think about creating a transaction for these database requests or update database schema
             return deviceService.readDevice(request.getDeviceId())
                     .flatMap(device -> {
                         if (device.getBlocked()) {
-                            return Mono.error(new Exception("Device already blocked"));
+                            return Mono.empty();
                         } else {
                             return Mono.just(device);
                         }
                     })
+                    .onErrorResume(a -> Mono.empty()) // TODO: Add logging
                     .flatMap(device ->
-                            deviceService.updateDevice(new Device(
+                            deviceService.updateDevice(
+								new Device(
                                     device.getId(),
                                     device.getDeviceId(),
                                     device.getNumber(),
@@ -231,20 +238,31 @@ public class ApiController {
                                     device.getSetTemperaturePlate1(),
                                     device.getSetTemperaturePlate2(),
                                     device.getLocation(),
-                                    device.getAddress()))
-                    )
+                                    device.getAddress())))
                     .flatMap(device -> userService.readUser(sub.getName()))
-                    .flatMap(user -> stripeService.createCardPaymentIntent(
-                            user,
-                            timeslot.getCost(),
-                            request.getPaymentMethodId())
-                            .map(payment -> Pair.of(payment, user))) // TODO: Check how to retrieve the price
-                    .flatMap(pair -> bookingService.createBooking(
-                            pair.getFirst().getId(),
-                            request.getDeviceId(),
-                            pair.getSecond().getId(),
-                            timeslot)
-                            .map(booking -> new Booking(booking.getId(), booking.getPaymentIntentId(), booking.getDeviceId(), booking.getUserId(), booking.getStatus(), booking.getRequestTime(), booking.getSessionStart(), pair.getFirst(), booking.getTimeslot()))) // TODO: evaluate what kind of resource to return
+                    .flatMap(user -> 
+							stripeService.createCardPaymentIntent(
+								user,
+								timeslot.getCost(),
+								request.getPaymentMethodId())
+								.map(payment -> Pair.of(payment, user))) // TODO: Check how to retrieve the price
+                    .flatMap(pair -> 
+							bookingService.createBooking(
+								pair.getFirst().getId(),
+								request.getDeviceId(),
+								pair.getSecond().getId(),
+								timeslot)
+                            .map(booking -> 
+								new Booking(
+									booking.getId(), 
+									booking.getPaymentIntentId(), 
+									booking.getDeviceId(), 
+									booking.getUserId(), 
+									booking.getStatus(), 
+									booking.getRequestTime(), 
+									booking.getSessionStart(), 
+									pair.getFirst(), 
+									booking.getTimeslot()))) // TODO: evaluate what kind of resource to return
                     .map(ResponseEntity::ok)
                     .doOnError(e -> { // TODO: Error is also created
                         deviceService
@@ -268,8 +286,7 @@ public class ApiController {
                                                         device.getAddress())))
                                 .subscribe();
                     })
-                    .defaultIfEmpty(ResponseEntity.unprocessableEntity().build())
-                    ;
+                    .defaultIfEmpty(ResponseEntity.unprocessableEntity().build());
         } else {
             return Mono.just(ResponseEntity.unprocessableEntity().build());
         }
@@ -296,6 +313,7 @@ public class ApiController {
      */
     @GetMapping("/bookings/{id}")
     public Mono<ResponseEntity<Booking>> getBookings(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String id) {
+        // TODO: Move to service layer
         return bookingService.findBooking(id)
                 .filter(booking -> booking.getUserId().contentEquals(sub.getName()))
                 .map(booking -> ResponseEntity.ok().header("Link", "</devices/" + booking.getDeviceId() + ">; rel=\"device\"").body(booking))
@@ -316,7 +334,7 @@ public class ApiController {
     /**
      * Retrieve a device by its ID.
      *
-     * @param deviceId: The ID of the device to retrieve.
+     * @param deviceId: The ID for the device to retrieve.
      * @return The device identified by the deviceId parameter.
      */
     @GetMapping("/devices/{id}")
@@ -346,7 +364,7 @@ public class ApiController {
      * Update the information of a device.
      * TODO: Currently not idempotent! Because it does not use the id from the request but creates a new one
      *
-     * @param id:     The ID of the device to be updated. Must be identical to the id field in the device object in the request body.
+     * @param id:     The ID for the device to be updated. Must be identical to the id field in the device object in the request body.
      * @param device: The device object which will be used to update the device.
      * @return The updated device.
      */

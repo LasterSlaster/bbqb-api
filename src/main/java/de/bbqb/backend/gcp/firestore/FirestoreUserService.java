@@ -9,8 +9,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Implementation of a UserService to manage user information
- * in a GCP Firestore.
+ * Service to manage user resources
  *
  * @author Marius Degen
  */
@@ -25,13 +24,32 @@ public class FirestoreUserService implements UserService {
        this.firestore = firestore;
     }
 
+    /**
+     * Create a new user with the provided object
+     *
+     * @param user The user to be created. Must not be null
+     * @throws IllegalAccessException in case the given user is null
+     * @return Mono emitting the created user
+     */
     @Override
     public Mono<User> createUser(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("user must not be null");
+        }
         String id = firestore.collection("users").document().getId();
         UserDoc userDoc = new UserDoc(id, user.getStripeCustomerId(), user.getFirstName(), user.getLastName(),  user.getEmail());
         return this.repo.save(mapToUserDoc(user, userDoc)).map(this::mapFromUserDoc);
     }
 
+    /**
+     * Update a user with the provided user data.
+     * The user to update is identified by user.getId()
+     * If the provided user does not exists no write operation is performed.
+     *
+     * @param user The new values for the user identified by its id
+     * @throws IllegalAccessException in case the given id is null
+     * @return Mono emitting the updated user object or Mono.empty() if no user was found
+     */
     @Override
     public Mono<User> updateUser(User user) {
         return this.repo.findById(user.getId())
@@ -41,11 +59,23 @@ public class FirestoreUserService implements UserService {
                 .switchIfEmpty(this.createUser(user)); // otherwise create a new DeviceDoc
     }
 
+    /**
+     * Read a particular user by its id
+     *
+     * @param id must not be null
+     * @throws IllegalAccessException in case the id is null
+     * @return A Mono emitting a user or Mono.empty if none ist found
+     */
     @Override
     public Mono<User> readUser(String id) {
         return this.repo.findById(id).map(this::mapFromUserDoc);
     }
 
+    /**
+     * Find all existing users
+     *
+     * @return A Flux emitting all users or Flux.empty if none ist found
+     */
     @Override
     public Flux<User> readAllUsers() {
         return this.repo.findAll().map(this::mapFromUserDoc);

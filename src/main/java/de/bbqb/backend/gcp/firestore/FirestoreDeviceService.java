@@ -34,7 +34,7 @@ import java.util.Base64;
 // TODO: Move Documentation to Interface
 
 /**
- * Device service to retrieve device information from a gcp firestore nosql db
+ * Device service to manage device resources
  *
  * @author Marius Degen
  */
@@ -64,14 +64,14 @@ public class FirestoreDeviceService implements DeviceService {
         this.firestore = firestore;
     }
 
+    // TODO: THink about movin this method to a separate Class
     /**
-     * Send the open signal to the IoT-Device {@code device}
-     * TODO: THink rethrowing the error and changing return type
-     * TODO: THink about movin this method to a separate Class
+     * Send the open signal to a BBQB-IoT-Device {@code device} to unlock it.
+     * After the BBQB receives that signal the device can be opened by a user within a certain time period.
      *
      * @param deviceId The device to send the signal to.
      *                 The IoT-Device is evaluated by its id.
-     * @return true if signal was send successfully to device otherwise false
+     * @throws if sending a signal to the device was not successful.
      */
     @Override
     public Mono<Void> openDevice(String deviceId, Integer timeslot) {
@@ -99,22 +99,12 @@ public class FirestoreDeviceService implements DeviceService {
             req.setBinaryData(encPayload);
             LOGGER.info("Sending command to " + devicePath);
 
+            // This may throw an exception if the http request is not successful
             SendCommandToDeviceResponse response = service.projects().locations().registries().devices().sendCommandToDevice(devicePath, req).execute();
             LOGGER.info("Command response: sent");
             LOGGER.info("Response is :" + response.toString());
             return null;
         });
-    }
-
-    /**
-     * Send the lock signal to the IoT-Device specified by {@code device}
-     *
-     * @param device The device to send the signal to.
-     *               The IoT-Device is evaluated by its id.
-     */
-    @Override
-    public Boolean lockDevice(Device device) {
-        return false;
     }
 
     /**
@@ -160,8 +150,8 @@ public class FirestoreDeviceService implements DeviceService {
      * Read a single device specified by the device id
      *
      * @param deviceId The id of the device to read. Must not be null.
-     * @return Mono emitting the device specified by device id or Mono.empty if none found.
      * @throws {@link IllegalArgumentException} in case the given id is null.
+     * @return Mono emitting the device specified by device id or Mono.empty if none found.
      */
     @Override
     public Mono<Device> readDevice(String deviceId) {
@@ -169,23 +159,15 @@ public class FirestoreDeviceService implements DeviceService {
     }
 
     /**
-     * Returns all devices.
+     * Read all existing devices.
      *
-     * @return Flux emitting all devices
+     * @return Flux emitting all devices or Flux.empty if none was found
      */
     @Override
     public Flux<Device> readAllDevices() {
         return deviceRepo.findAll().map(this::mapFromDeviceDoc);
     }
 
-    /**
-     * Map a Device object to a DeviceDoc object.
-     * Mutates the parameter deviceDoc!
-     *
-     * @param device    The device to map to a DeviceDoc
-     * @param deviceDoc device document which will be updated with the information from device
-     * @return A DeviceDoc with the information from device
-     */
     private DeviceDoc mapToDeviceDoc(Device device, DeviceDoc deviceDoc) {
         if (device.getDeviceId() != null) {
             deviceDoc.setDeviceId(device.getDeviceId());
@@ -222,12 +204,6 @@ public class FirestoreDeviceService implements DeviceService {
         return deviceDoc;
     }
 
-    /**
-     * Map a DeviceDoc object to a Device object.
-     *
-     * @param deviceDoc The DeviceDoc to map to a Device
-     * @return A device with the information from deviceDoc
-     */
     private Device mapFromDeviceDoc(DeviceDoc deviceDoc) {
         Location location = new Location(deviceDoc.getLocation().getLatitude(),
                 deviceDoc.getLocation().getLongitude());

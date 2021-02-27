@@ -11,7 +11,6 @@ import de.bbqb.backend.api.model.entity.Booking;
 import de.bbqb.backend.api.model.entity.Device;
 import de.bbqb.backend.api.model.service.BookingService;
 import de.bbqb.backend.api.model.service.DeviceService;
-import de.bbqb.backend.gcp.firestore.document.BookingDoc;
 import de.bbqb.backend.stripe.StripeService;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -126,6 +125,11 @@ public class StripeWebhook {
                 PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
                 // TODO: Query the db for a pending grill session document with this paymentIntent. If found set the grill session to active/create one and send the open signal to the bbqb-device
                 this.bookingService.findBookingByPaymentIntentId(paymentIntent.getId())
+                        .doOnSuccess(data -> {
+                            if (data == null) {
+                                LOGGER.warn("No booking found for successful payment " + paymentIntent.getId());
+                            }
+                        })
                         .map(booking -> new Booking(
                                 booking.getId(),
                                 booking.getPaymentIntentId(),
@@ -142,14 +146,8 @@ public class StripeWebhook {
                                 this.deviceService.openDevice(pair.getRight().getDeviceId(), pair.getLeft().getTimeslot())
                                         .retry(3)
                                         .doOnError(e -> LOGGER.warn("Unable to open device " + pair.getRight().getDeviceId())))
-                        .doOnSuccess(data -> {
-                            if (data == null) {
-                                LOGGER.warn("No booking found for successfull payment " + paymentIntent.getId());
-                            }
-                        })
-                        .doOnError(e -> LOGGER.error("Error while processing successfull paymentintent"))
-                        .subscribe()
-                ;
+                        .doOnError(e -> LOGGER.error("Error while processing successful paymentintent"))
+                        .subscribe();
                 break;
             case "payment_intent.payment_failed":
                 LOGGER.info("Received event of type payment_intent.payment_failed");
@@ -168,13 +166,28 @@ public class StripeWebhook {
                                 booking.getTimeslot()))
                         .flatMap(bookingService::updateBooking)
                         .flatMap(booking -> deviceService.readDevice(booking.getDeviceId()))
-                        .flatMap(device -> deviceService.updateDevice(new Device(device.getId(),device.getDeviceId(),device.getNumber(),device.getPublishTime(), false, device.getLocked(), device.getClosed(), device.getWifiSignal(), device.getIsTemperaturePlate1(),device.getIsTemperaturePlate2(),device.getSetTemperaturePlate1(),device.getSetTemperaturePlate2(),device.getLocation(),device.getAddress())))
+                        .flatMap(device -> deviceService.updateDevice(
+                                new Device(
+                                        device.getId(),
+                                        device.getDeviceId(),
+                                        device.getNumber(),
+                                        device.getPublishTime(),
+                                        false,
+                                        device.getLocked(),
+                                        device.getClosed(),
+                                        device.getWifiSignal(),
+                                        device.getIsTemperaturePlate1(),
+                                        device.getIsTemperaturePlate2(),
+                                        device.getSetTemperaturePlate1(),
+                                        device.getSetTemperaturePlate2(),
+                                        device.getLocation(),
+                                        device.getAddress())))
+                        .doOnError(e -> LOGGER.error("Error while processing failed paymentintent"))
                         .subscribe();
                 break;
             default:
                 LOGGER.warn("Unhandled event type: " + event.getType());
         }
-
         return ResponseEntity.ok().build();
     }
 }

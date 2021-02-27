@@ -57,20 +57,11 @@ public class StripeService implements CustomerService {
                     SessionCreateParams.builder()
                             .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                             .setMode(SessionCreateParams.Mode.SETUP)
-                            .addExpand("setup_intent") // TODO: Check if this is the correct identifier and if we have to process a setupintend anyway
+                            .addExpand("setup_intent")
                             .setCustomer(user.getStripeCustomerId())
-                            // TODO: Check which values to insert here
-                            .setSuccessUrl("https://example.com/success?session_id={CHECKOUT_SESSION_ID}")
-                            .setCancelUrl("https://example.com/cancel")
                             .build();
             try {
-                Session session = Session.create(params); // TODO: Check if this a blocking network call and if so think about creating a separate thread
-                /*
-                Mono blockingWrapper = Mono.fromCallable(() -> {
-                    return callsomethingSynchronous;
-                });
-                blockingWrapper = blockingWrapper.subscribeOn(Schedulers.boundedElastic());
-                */
+                Session session = Session.create(params);
                 monoSink.success(session.getId());
             } catch (StripeException e) {
                 monoSink.error(e);
@@ -111,7 +102,7 @@ public class StripeService implements CustomerService {
                             .setAmount(amount)
                             .setReceiptEmail(user.getEmail())
                             .setPaymentMethod(paymentMethodId)
-                            .setConfirm(true) // TODO: Check the effects of this setting
+                            .setConfirm(true) // TODO: Check if it's necessary to confirm on the server side
                             .setOffSession(true) // With this set to true PaymentIntent throws an error if authentication is required!
                             .build();
                     PaymentIntent paymentIntent = PaymentIntent.create(paymentIntentParams);

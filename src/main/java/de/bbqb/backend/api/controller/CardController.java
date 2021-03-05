@@ -63,17 +63,4 @@ public class CardController {
                 .map(ResponseEntity::ok);
     }
 
-    /**
-     * Create a PaymentIntent to pay for a bbqb booking/session.
-     *
-     * @return A client secret to complete the PaymentIntent
-     */
-    @PostMapping("/payments")
-    public Mono<ResponseEntity<Payment>> postCardPaymentSetup(@AuthenticationPrincipal Authentication sub, BookingRequest request) {
-        return stripeService.createCardPaymentIntent(
-                sub.getName(),
-                100L,// TODO: Check how to retrieve the price
-                request.getPaymentMethodId())
-                .map(ResponseEntity::ok);
-    }
 }

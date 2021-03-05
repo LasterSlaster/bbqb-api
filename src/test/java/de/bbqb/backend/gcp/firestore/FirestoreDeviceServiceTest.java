@@ -1,4 +1,4 @@
-package de.bbq.backend.gcp.firestore;
+package de.bbqb.backend.gcp.firestore;
 
 import com.google.cloud.firestore.Firestore;
 import de.bbqb.backend.api.model.entity.Address;

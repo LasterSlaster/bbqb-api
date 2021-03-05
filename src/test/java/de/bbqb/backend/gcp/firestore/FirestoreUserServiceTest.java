@@ -1,4 +1,4 @@
-package de.bbq.backend.gcp.firestore;
+package de.bbqb.backend.gcp.firestore;
 
 public class FirestoreUserServiceTest {
 }

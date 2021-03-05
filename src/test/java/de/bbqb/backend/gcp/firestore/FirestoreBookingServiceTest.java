@@ -1,4 +1,4 @@
-package de.bbq.backend.gcp.firestore;
+package de.bbqb.backend.gcp.firestore;
 
 import com.google.cloud.firestore.Firestore;
 import de.bbqb.backend.api.ApiApplication;
@@ -43,5 +43,4 @@ public class FirestoreBookingServiceTest {
         // then
         List<Booking> bookings = bookingDocs.sort(Comparator.comparing(Booking::getRequestTime, Comparator.reverseOrder())).buffer().next().block();
     }
-
 }

@@ -36,9 +36,7 @@ public class CardController {
      */
     @GetMapping("/cards")
     public Mono<ResponseEntity<List<Card>>> getCards(@AuthenticationPrincipal Authentication sub) {
-        // TODO: Extend stripeService to do user validation
-        return userService.readUser(sub.getName())
-                .flatMap(stripeService::readCards)
+        return stripeService.readCards(sub.getName())
                 .map(ResponseEntity::ok);
     }
 
@@ -49,9 +47,7 @@ public class CardController {
      */
     @DeleteMapping("/cards/{id}")
     public Mono<ResponseEntity<Card>> deleteCard(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String cardId) {
-        // TODO: Extend stripeService to do user validation
-        return userService.readUser(sub.getName())
-                .flatMap(user -> stripeService.deleteCard(cardId, user))
+        return stripeService.deleteCard(cardId, sub.getName())
                 .map(ResponseEntity::ok)
                 .onErrorReturn(ResponseEntity.notFound().build());
     }
@@ -63,9 +59,7 @@ public class CardController {
      */
     @PostMapping("/cards")
     public Mono<ResponseEntity<Card>> postCardSetup(@AuthenticationPrincipal Authentication sub) {
-        // TODO: Extend stripeService to do user validation
-        return userService.readUser(sub.getName())
-                .flatMap(stripeService::createSetupCardIntent)
+        return stripeService.createSetupCardIntent(sub.getName())
                 .map(ResponseEntity::ok);
     }
 
@@ -76,9 +70,10 @@ public class CardController {
      */
     @PostMapping("/payments")
     public Mono<ResponseEntity<Payment>> postCardPaymentSetup(@AuthenticationPrincipal Authentication sub, BookingRequest request) {
-        // TODO: Extend bookingService to do user validation
-        return userService.readUser(sub.getName())
-                .flatMap(user -> stripeService.createCardPaymentIntent(user, 100L, request.getPaymentMethodId())) // TODO: Check how to retrieve the price
+        return stripeService.createCardPaymentIntent(
+                sub.getName(),
+                100L,// TODO: Check how to retrieve the price
+                request.getPaymentMethodId())
                 .map(ResponseEntity::ok);
     }
 }

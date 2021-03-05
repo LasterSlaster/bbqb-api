@@ -87,7 +87,7 @@ public class BookingController {
                     .flatMap(device -> userService.readUser(sub.getName()))
                     .flatMap(user -> 
 							stripeService.createCardPaymentIntent(
-								user,
+								sub.getName(),
 								timeslot.getCost(),
 								request.getPaymentMethodId())
 								.map(payment -> Pair.of(payment, user))) // TODO: Check how to retrieve the price
@@ -157,12 +157,11 @@ public class BookingController {
      * @return
      */
     @GetMapping("/bookings/{id}")
-    public Mono<ResponseEntity<Booking>> getBookings(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String id) {
+    public Mono<ResponseEntity<Booking>> getBooking(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String id) {
         // TODO: Move to service layer
         return bookingService.findBooking(id)
                 .filter(booking -> booking.getUserId().contentEquals(sub.getName()))
                 .map(booking -> ResponseEntity.ok().header("Link", "</devices/" + booking.getDeviceId() + ">; rel=\"device\"").body(booking))
-                .defaultIfEmpty(ResponseEntity.notFound().build())
-                ;
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }

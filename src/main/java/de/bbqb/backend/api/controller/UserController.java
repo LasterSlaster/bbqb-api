@@ -51,7 +51,6 @@ public class UserController {
      * @param userId: The ID of the user to retrieve.
      * @return The user identified by the userId parameter.
      */
-    // OidcUser.getAuthorities()  OAuth2User.getAuthorities()
     @GetMapping("/users/{id}")
     public Mono<ResponseEntity<User>> getUser(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String userId) {
         if (sub.getName().equals(userId)) {
@@ -85,7 +84,7 @@ public class UserController {
             return userService.readUser(user.getId())
                     .flatMap(alreadyExistingUser -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build())) // User already exists
                     .switchIfEmpty(
-                            stripeService.createCustomer(user)
+                            stripeService.createCustomer(user.getId())
                                     // TODO: createUser overrides id attribute
                                     .flatMap(customer -> userService.createUser(customer))
                                     .map(ResponseEntity.created(builder.build().toUri())::body));
@@ -94,9 +93,9 @@ public class UserController {
         }
     }
 
+    // TODO: Currently not idempotent! Because it does not use the id from the request but creates a new one
     /**
      * Update user information.
-     * TODO: Currently not idempotent! Because it does not use the id from the request but creates a new one
      *
      * @param id:   The ID of the user to be updated. Must be identical to the id field in the user object in the request body.
      * @param user: The user object which will be used to update the user.

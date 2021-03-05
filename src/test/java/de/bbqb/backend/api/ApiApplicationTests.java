@@ -16,7 +16,7 @@ class ApiApplicationTests {
      */
     @Test
     void contextLoads() {
-
+        // This test method does not require any implementation! It's just supposed to trigger the SpringBootTest annotation to start spring boot context initialization.
     }
 
 }

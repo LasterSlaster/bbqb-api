@@ -1,5 +1,6 @@
 package de.bbqb.backend.api.model.entity;
 
+
 public enum Timeslot {
    FORTY_FIVE(45, 800L),
    NINETY(90, 1300L);
@@ -14,11 +15,21 @@ public enum Timeslot {
      */
    Timeslot(Integer time, Long cost) {
      this.time = time;
-       this.cost = cost;
+     this.cost = cost;
    }
 
    public Integer getTime() {
        return this.time;
    }
    public Long getCost() { return this.cost; }
+   public static Timeslot getTimeslot(Integer time) {
+       switch (time) {
+           case 45:
+               return Timeslot.FORTY_FIVE;
+           case 90:
+               return Timeslot.NINETY;
+           default:
+               throw new IllegalArgumentException();
+       }
+   }
 }

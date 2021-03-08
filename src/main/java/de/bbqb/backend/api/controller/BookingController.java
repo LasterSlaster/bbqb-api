@@ -44,17 +44,12 @@ public class BookingController {
     @PostMapping("/bookings")
     public Mono<ResponseEntity<Booking>> postBookings(@AuthenticationPrincipal Authentication sub, @RequestBody BookingRequest request) {
         // TODO: Refactor this code block and extract business logic to service layer
-        // Parse timeslot
         Timeslot timeslot;
-        switch (request.getTimeslot()) {
-            case 45:
-                timeslot = Timeslot.FORTY_FIVE;
-                break;
-            case 90:
-                timeslot = Timeslot.NINETY;
-                break;
-            default:
-                return Mono.just(ResponseEntity.badRequest().build());
+        try {
+            // Parse timeslot
+            timeslot = Timeslot.getTimeslot(request.getTimeslot());
+        } catch (IllegalArgumentException e) {
+            return Mono.just(ResponseEntity.badRequest().build());
         }
         if (request.getDeviceId() != null) {
             // TODO: Check if database integrity stays consistent. Think about creating a transaction for these database requests or update database schema

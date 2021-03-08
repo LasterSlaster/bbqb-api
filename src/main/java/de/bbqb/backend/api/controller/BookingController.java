@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono;
  *
  * @author Marius Degen
  */
-@CrossOrigin(origins = "*") // CORS configuration to allow all for the endpoints in this controller
+@CrossOrigin(origins = "*")
 @RestController
 public class BookingController {
 

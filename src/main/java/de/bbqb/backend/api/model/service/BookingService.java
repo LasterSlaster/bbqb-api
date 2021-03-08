@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 public interface BookingService {
     Mono<Booking> createBooking(String paymentIntentId, String deviceId, String userId, Timeslot timeslot);
-    Mono<Booking> findBooking(String bookingId);
+    Mono<Booking> findBooking(String bookingId, String userId);
     Flux<Booking> findAllBookingsByUserId(String userId);
     Flux<Booking> findAllBookingsByDeviceId(String deviceId);
     Mono<Booking> findBookingByPaymentIntentId(String deviceId);

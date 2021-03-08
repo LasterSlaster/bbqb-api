@@ -1,6 +1,5 @@
 package de.bbqb.backend.api.controller;
 
-import de.bbqb.backend.api.controller.BookingController;
 import de.bbqb.backend.api.model.entity.*;
 import de.bbqb.backend.api.model.service.BookingService;
 import de.bbqb.backend.api.model.service.DeviceService;
@@ -10,8 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -78,7 +75,7 @@ public class BookingControllerTest {
         Booking result = new Booking(bookingId, "intent", "bbqbId", userId, "status", new Date(), new Date(), payment, 45);
 
         when(sub.getName()).thenReturn(userId);
-        when(bookingService.findBooking(bookingId)).thenReturn(Mono.just(result));
+        when(bookingService.findBooking(bookingId, userId)).thenReturn(Mono.just(result));
 
         //when
         ResponseEntity<Booking> resultBooking = this.sut.getBooking(sub, "1").block();

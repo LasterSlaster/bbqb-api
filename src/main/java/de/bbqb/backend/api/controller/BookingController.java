@@ -153,9 +153,7 @@ public class BookingController {
      */
     @GetMapping("/bookings/{id}")
     public Mono<ResponseEntity<Booking>> getBooking(@AuthenticationPrincipal Authentication sub, @PathVariable("id") String id) {
-        // TODO: Move to service layer
-        return bookingService.findBooking(id)
-                .filter(booking -> booking.getUserId().contentEquals(sub.getName()))
+        return bookingService.findBooking(id, sub.getName())
                 .map(booking -> ResponseEntity.ok().header("Link", "</devices/" + booking.getDeviceId() + ">; rel=\"device\"").body(booking))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }

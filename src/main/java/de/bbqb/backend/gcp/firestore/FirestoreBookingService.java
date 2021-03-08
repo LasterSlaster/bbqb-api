@@ -29,18 +29,22 @@ public class FirestoreBookingService implements BookingService {
      * Find a particular booking by its id
      *
      * @param bookingId must not be null
-     * @throws IllegalAccessException in case the bookingId is null
-     * @return A Mono emitting a booking or Mono.empty if none ist found
+     * @throws IllegalArgumentException in case the bookingId is null
+     * @return A Mono emitting a booking or Mono.empty if no booking with such an ID is found for this user
      */
-    public Mono<Booking> findBooking(String bookingId) {
-        return this.repo.findById(bookingId).map(this::fromBookingDocToBooking);
+    public Mono<Booking> findBooking(String bookingId, String userId) {
+        Assert.notNull(userId, "Parameter userId must not be null");
+        return this.repo
+                .findById(bookingId)
+                .map(this::fromBookingDocToBooking)
+                .filter(booking -> booking.getUserId().contentEquals(userId));
     }
 
     /**
      * Find all bookings that where created by particular user
      *
      * @param userId must not be null
-     * @throws IllegalAccessException in case the userId is null
+     * @throws IllegalArgumentException in case the userId is null
      * @return A Flux emitting all bookings found for the user identified by the userId or Flux.empty if none ist found
      */
     public Flux<Booking> findAllBookingsByUserId(String userId) {
@@ -51,7 +55,7 @@ public class FirestoreBookingService implements BookingService {
      * Find all bookings that where created for a particular device(BBQB)
      *
      * @param deviceId must not be null
-     * @throws IllegalAccessException in case the deviceId is null
+     * @throws IllegalArgumentException in case the deviceId is null
      * @return A Flux emitting all bookings found for the device identified by the deviceId or Flux.empty if none ist found
      */
     public Flux<Booking> findAllBookingsByDeviceId(String deviceId) {

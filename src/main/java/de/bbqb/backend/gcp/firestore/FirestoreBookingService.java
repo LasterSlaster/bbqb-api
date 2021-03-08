@@ -7,6 +7,7 @@ import de.bbqb.backend.api.model.entity.Timeslot;
 import de.bbqb.backend.api.model.service.BookingService;
 import de.bbqb.backend.gcp.firestore.document.BookingDoc;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

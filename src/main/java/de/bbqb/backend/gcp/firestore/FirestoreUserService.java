@@ -28,7 +28,7 @@ public class FirestoreUserService implements UserService {
      * Create a new user with the provided object
      *
      * @param user The user to be created. Must not be null
-     * @throws IllegalAccessException in case the given user is null
+     * @throws IllegalArgumentException in case the given user is null
      * @return Mono emitting the created user
      */
     @Override
@@ -47,7 +47,7 @@ public class FirestoreUserService implements UserService {
      * If the provided user does not exists no write operation is performed.
      *
      * @param user The new values for the user identified by its id
-     * @throws IllegalAccessException in case the given id is null
+     * @throws IllegalArgumentException in case the given id is null
      * @return Mono emitting the updated user object or Mono.empty() if no user was found
      */
     @Override
@@ -63,7 +63,7 @@ public class FirestoreUserService implements UserService {
      * Read a particular user by its id
      *
      * @param id must not be null
-     * @throws IllegalAccessException in case the id is null
+     * @throws IllegalArgumentException in case the id is null
      * @return A Mono emitting a user or Mono.empty if none ist found
      */
     @Override

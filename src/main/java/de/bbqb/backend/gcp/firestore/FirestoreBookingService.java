@@ -66,7 +66,7 @@ public class FirestoreBookingService implements BookingService {
      * Find a booking by its payment id
      *
      * @param paymentIntentId must not be null
-     * @throws IllegalAccessException in case the paymentIntentId is null
+     * @throws IllegalArgumentException in case the paymentIntentId is null
      * @return Mono emitting the requested booking or Mono.empty if none is found
      */
     public Mono<Booking> findBookingByPaymentIntentId(String paymentIntentId) {
@@ -106,7 +106,7 @@ public class FirestoreBookingService implements BookingService {
      * If the provided booking does not exists no write operation is performed.
      *
      * @param booking The new values for the booking identified by its id
-     * @throws IllegalAccessException in case the given id is null
+     * @throws IllegalArgumentException in case the given id is null
      * @return Mono emitting the updated booking object or Mono.empty() if no booking was found
      */
     public Mono<Booking> updateBooking(Booking booking) {

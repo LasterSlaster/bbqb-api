@@ -3,8 +3,11 @@ package de.bbqb.backend.gcp.firestore;
 import com.google.cloud.firestore.Firestore;
 import de.bbqb.backend.api.ApiApplication;
 import de.bbqb.backend.api.model.entity.Booking;
+import de.bbqb.backend.api.model.service.DeviceService;
+import de.bbqb.backend.api.model.service.UserService;
 import de.bbqb.backend.gcp.firestore.BookingRepo;
 import de.bbqb.backend.gcp.firestore.FirestoreBookingService;
+import de.bbqb.backend.stripe.StripeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,9 +31,18 @@ public class FirestoreBookingServiceTest {
     @Autowired
     private Firestore firestoreMock;
 
+    @Autowired
+    private DeviceService deviceService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private StripeService stripeService;
+
     @BeforeEach
     public void setUp() {
-        this.sut = new FirestoreBookingService(bookingRepo, firestoreMock);
+        this.sut = new FirestoreBookingService(bookingRepo, firestoreMock, deviceService, userService, stripeService);
     }
 
     @Test

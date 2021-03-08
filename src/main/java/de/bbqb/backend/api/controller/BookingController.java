@@ -5,7 +5,8 @@ import de.bbqb.backend.api.model.service.BookingService;
 import de.bbqb.backend.api.model.service.DeviceService;
 import de.bbqb.backend.api.model.service.UserService;
 import de.bbqb.backend.stripe.StripeService;
-import org.springframework.data.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,6 +27,7 @@ public class BookingController {
     private UserService userService;
     private StripeService stripeService;
     private BookingService bookingService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(BookingController.class);
 
     public BookingController(DeviceService deviceService, UserService userService, StripeService stripeService, BookingService bookingService) {
         super();
@@ -43,7 +45,7 @@ public class BookingController {
      */
     @PostMapping("/bookings")
     public Mono<ResponseEntity<Booking>> postBookings(@AuthenticationPrincipal Authentication sub, @RequestBody BookingRequest request) {
-        // TODO: Refactor this code block and extract business logic to service layer
+        // TODO: Update test for this method because most of the code in here was moved to the service level
         Timeslot timeslot;
         try {
             // Parse timeslot
@@ -52,81 +54,9 @@ public class BookingController {
             return Mono.just(ResponseEntity.badRequest().build());
         }
         if (request.getDeviceId() != null) {
-            // TODO: Check if database integrity stays consistent. Think about creating a transaction for these database requests or update database schema
-            return deviceService.readDevice(request.getDeviceId())
-                    .flatMap(device -> {
-                        if (device.getBlocked()) {
-                            return Mono.empty();
-                        } else {
-                            return Mono.just(device);
-                        }
-                    })
-                    .onErrorResume(a -> Mono.empty()) // TODO: Add logging
-                    .flatMap(device ->
-                            deviceService.updateDevice(
-								new Device(
-                                    device.getId(),
-                                    device.getDeviceId(),
-                                    device.getNumber(),
-                                    device.getPublishTime(),
-                                    true,
-                                    device.getLocked(),
-                                    device.getClosed(),
-                                    device.getWifiSignal(),
-                                    device.getIsTemperaturePlate1(),
-                                    device.getIsTemperaturePlate2(),
-                                    device.getSetTemperaturePlate1(),
-                                    device.getSetTemperaturePlate2(),
-                                    device.getLocation(),
-                                    device.getAddress())))
-                    .flatMap(device -> userService.readUser(sub.getName()))
-                    .flatMap(user -> 
-							stripeService.createCardPaymentIntent(
-								sub.getName(),
-								timeslot.getCost(),
-								request.getPaymentMethodId())
-								.map(payment -> Pair.of(payment, user))) // TODO: Check how to retrieve the price
-                    .flatMap(pair -> 
-							bookingService.createBooking(
-								pair.getFirst().getId(),
-								request.getDeviceId(),
-								pair.getSecond().getId(),
-								timeslot)
-                            .map(booking -> 
-								new Booking(
-									booking.getId(), 
-									booking.getPaymentIntentId(), 
-									booking.getDeviceId(), 
-									booking.getUserId(), 
-									booking.getStatus(), 
-									booking.getRequestTime(), 
-									booking.getSessionStart(), 
-									pair.getFirst(), 
-									booking.getTimeslot()))) // TODO: evaluate what kind of resource to return
+            return bookingService.createBooking(request.getPaymentMethodId(), request.getDeviceId(), sub.getName(), timeslot)
                     .map(ResponseEntity::ok)
-                    .doOnError(e -> { // TODO: Error is also created
-                        deviceService
-                                .readDevice(request.getDeviceId())
-                                .flatMap(device ->
-                                        deviceService.updateDevice(
-                                                new Device(
-                                                        device.getId(),
-                                                        device.getDeviceId(),
-                                                        device.getNumber(),
-                                                        device.getPublishTime(),
-                                                        false,
-                                                        device.getLocked(),
-                                                        device.getClosed(),
-                                                        device.getWifiSignal(),
-                                                        device.getIsTemperaturePlate1(),
-                                                        device.getIsTemperaturePlate2(),
-                                                        device.getSetTemperaturePlate1(),
-                                                        device.getSetTemperaturePlate2(),
-                                                        device.getLocation(),
-                                                        device.getAddress())))
-                                .subscribe();
-                    })
-                    .defaultIfEmpty(ResponseEntity.unprocessableEntity().build());
+                    .onErrorReturn(ResponseEntity.unprocessableEntity().build());
         } else {
             return Mono.just(ResponseEntity.unprocessableEntity().build());
         }

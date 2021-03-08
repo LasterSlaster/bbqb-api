@@ -148,7 +148,7 @@ public class BookingControllerTest {
         when(userService.readUser(userId)).thenReturn(Mono.just(currentUser));
         when(stripeService.createCardPaymentIntent(userId, timeslot.getCost(), paymentMethodId)).thenReturn(Mono.just(payment));
         // When creating a booking return the booking which was requested for creation
-        when(bookingService.createBooking(paymentIntentId, deviceId, userId, timeslot)).thenReturn(Mono.just(booking));
+        when(bookingService.createBooking(paymentMethodId, deviceId, userId, timeslot)).thenReturn(Mono.just(booking));
 
         //when
         ResponseEntity<Booking> resultBooking = this.sut.postBookings(sub, bookingRequest).block();
